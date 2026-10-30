@@ -1,9 +1,9 @@
 name: Verify HOPSCROLL
 on:
   push:
-    branches: [main]
+    branches: [main, codex/safe-first-hop]
   pull_request:
-    branches: [main]
+    branches: [main, claude/polish-mobile]
   workflow_dispatch:
 
 permissions:
