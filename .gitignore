@@ -1,0 +1,7 @@
+# Local build/test output
+itch-dist/
+qa-screenshots/
+node_modules/
+.claude/
+# Third-party BGM ("Love it Rabbit" by えだまめ88, OpenTracks): keep out of the public repo, inline at build time only.
+assets/bgm/*.mp3
