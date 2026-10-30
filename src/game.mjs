@@ -86,7 +86,44 @@ function finish(kind){
   if(kind==='fail'){fails++;tone(260,{dur:.38,to:.45,vol:.07});}
   else{[660,880,1320].forEach((f,i)=>tone(f,{type:i===2?'sine':'triangle',delay:i*.09,dur:.22,to:1,vol:.06}));confetti();}
 }
-function onFail(){const overshot=state.x>levels[levelIndex].goal[1];showModal({tag:`STAGE ${pad(levelIndex+1)} · TRY AGAIN`,title:'OOPS<span>!</span>',message:overshot?'You flew past the goal!<br/><em>LAND inside the golden gate.</em>':'Missed the landing!<br/>Watch the <em>NEXT</em> marker and adjust your speed.',button:'RETRY ↻',footer:'Instant retry. No penalty.',onAction:()=>reset(levelIndex,true)});}
+// Match the actual missed landing instead of treating every fall as a missed goal.
+// The core's correction identifies the nearest safe edge, NOT necessarily a route
+// forward. Never present it as a guaranteed solution to the stage.
+function failureMessage(level, current, failure) {
+  if(current.x > level.goal[1]) {
+    return 'You passed the GOAL!<br/><em>Land inside the golden gate, not beyond it.</em>';
+  }
+  if(!failure) {
+    return 'Missed the landing!<br/><em>Watch the NEXT marker and adjust your speed.</em>';
+  }
+  if(failure.reason === 'edge') {
+    return 'So close to the edge!<br/><em>Aim your next landing further inside the platform.</em>';
+  }
+  // In a gap, returning to the previous ledge and reaching the next one
+  // can both be valid. "More FAST/SLOW" alone would mislead the player.
+  const betweenPlatforms = level.platforms.some(([,end]) => end < failure.x)
+    && level.platforms.some(([start]) => start > failure.x);
+  if(betweenPlatforms) {
+    return 'You landed in the gap!<br/><em>Try a different HOLD / RELEASE timing.</em>';
+  }
+  if(failure.reason === 'undershoot') {
+    return 'The platform was just ahead!<br/><em>Try adjusting the NEXT landing marker.</em>';
+  }
+  if(failure.reason === 'overshoot') {
+    return 'You went past a platform!<br/><em>Try adjusting the NEXT landing marker.</em>';
+  }
+  return 'Missed the landing!<br/><em>Watch the NEXT marker and adjust your speed.</em>';
+}
+function onFail(){
+  showModal({
+    tag:`STAGE ${pad(levelIndex+1)} · TRY AGAIN`,
+    title:'OOPS<span>!</span>',
+    message:failureMessage(levels[levelIndex], state, state.failure),
+    button:'RETRY ↻',
+    footer:'Instant retry. No penalty.',
+    onAction:()=>reset(levelIndex,true)
+  });
+}
 function onClear(){
   storeUnlock(levelIndex+1);
   const final=levelIndex===levels.length-1,l=levels[levelIndex];
