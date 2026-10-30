@@ -73,7 +73,7 @@ function showModal({tag,title,message,button,onAction,footer}){
 function runModal(){const action=modalAction;modalAction=null;if(!action)return;tone(520,{type:'sine'});action();}
 $('modal-action').addEventListener('click',runModal);
 function intro(){
-  showModal({tag:'SLAPJAM #2 · THEME: SPEED',title:'HOP<span>SCROLL</span>',message:'① The bunny jumps by itself.<br/>② <em>HOLD</em> for FAST, release for SLOW.<br/>③ <em>LAND</em> inside the golden GOAL!',button:'LET\'S HOP →',footer:'Tap · or press SPACE',onAction:()=>reset(0,true)});
+  showModal({tag:'SLAPJAM #2 · THEME: SPEED',title:'HOP<span>SCROLL</span>',message:'① The bunny hops all by itself.<br/>② Try <em>HOLD</em> and then <em>RELEASE</em>.<br/>③ No gaps yet! First enjoy the speed.',button:'LET\'S HOP →',footer:'Tap · or press SPACE',onAction:()=>reset(0,true)});
 }
 function pause(){
   if(!playing||state.status!=='playing')return;
@@ -159,8 +159,13 @@ $('restart').addEventListener('click',e=>{e.currentTarget.blur();reset(levelInde
 $('mute').addEventListener('click',e=>{e.currentTarget.blur();toggleMute();});
 
 // ---- Coaching: Stage 1 (and any stage after 3 misses) points at the button only when switching would save the hop.
-const landingScore=(level,x)=>inGoal(level,x)?2:isSafe(level,x)?1:0;
+const landingScore=(level,x)=>(level.practice&&!state.triedRelease?1:inGoal(level,x)?2:isSafe(level,x)?1:0);
 function advice(level){
+  if(level.practice && playing && state.status==='playing'){
+    if(!state.triedFast) return 'hold';
+    if(!state.triedRelease) return 'release';
+    return null;
+  }
   if(!playing||state.status!=='playing'||(levelIndex>0&&fails<3))return null;
   const now=landingScore(level,predictLanding(state,pressed)),other=landingScore(level,predictLanding(state,!pressed));
   return other>now?(pressed?'release':'hold'):null;
@@ -175,7 +180,7 @@ function updateHud(){
   let text=l.hint;
   if(cue==='hold')text='▼ HOLD NOW! · 押しっぱなし!';
   else if(cue==='release')text='LET GO! · 指を離して減速';
-  else if(levelIndex===0)text=state.jumps<2&&!pressed?'① It hops by itself · 自動でジャンプ':inGoal(l,predictLanding(state,pressed))?'③ Land on the GOAL! · ゴールに着地':'② HOLD = FAST · RELEASE = SLOW';
+  else if(l.practice)text=state.triedRelease?'Nice! Land past the GOLD line · 金色のラインへ':'Try FAST and SLOW · 押す・離すを試そう!';
   setText(tip,text);
 }
 
@@ -213,7 +218,7 @@ function drawBg(camera){
 }
 const worldX=(world,camera)=>HERO_X+(world-camera-HERO_X)*WORLD_SCALE;
 function drawPlatforms(level,camera){
-  for(let i=0;i<level.platforms.length;i++){const [a,b]=level.platforms[i],sx=worldX(a,camera),ex=worldX(b,camera);if(ex<-10||sx>370)continue;
+  for(let i=0;i<level.platforms.length;i++){const [a,b0]=level.platforms[i],b=level.practice?Math.max(b0,state.x+1000):b0,sx=worldX(a,camera),ex=worldX(b,camera);if(ex<-10||sx>370)continue;
     // Flat physical collision surfaces: no decorative hitbox surprises.
     ctx.fillStyle='#173b4d';ctx.fillRect(sx,FLOOR+10,ex-sx,185);
     ctx.fillStyle='#2f7778';ctx.fillRect(sx,FLOOR+9,ex-sx,60);
@@ -230,6 +235,20 @@ function drawPlatforms(level,camera){
 }
 // Finish gate: checkered landing pad + posts + flag, with arrows pointing DOWN onto the pad (land, don't fly through).
 function drawGoal(level,camera){
+  // Practice has no hazards. Once both speeds are tried, a wide finish line
+  // appears and ANY landing beyond the line counts. It cannot be overshot.
+  if(level.practice){
+    if(!state.triedRelease)return;
+    const gx=worldX(level.goal[0],camera),from=Math.max(0,gx);
+    if(from<CW){ctx.fillStyle='#ffe17c';ctx.globalAlpha=.78;ctx.fillRect(from,FLOOR-4,CW-from,12);ctx.globalAlpha=1;}
+    if(gx>-40&&gx<CW+10){
+      rounded(gx-5,FLOOR-125,7,125,3,'#ffe17c');
+      ctx.beginPath();ctx.moveTo(gx+2,FLOOR-122);ctx.lineTo(gx+59,FLOOR-108);ctx.lineTo(gx+2,FLOOR-94);ctx.closePath();ctx.fillStyle='#ff8291';ctx.fill();
+      ctx.fillStyle='#fff4be';ctx.font='900 13px system-ui';ctx.textAlign='center';
+      ctx.fillText('FINISH →',Math.min(290,gx+50),FLOOR-70);
+    }
+    return;
+  }
   const [g1,g2]=level.goal,gl=worldX(g1,camera),gr=worldX(g2,camera),w=gr-gl,cx=(gl+gr)/2;
   if(gr<-30||gl>390)return;
   const beam=ctx.createLinearGradient(0,FLOOR-120,0,FLOOR);beam.addColorStop(0,'#ffd65a00');beam.addColorStop(1,'#ffd65a55');
