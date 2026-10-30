@@ -17,24 +17,39 @@ export const levels = [
     platforms: [[0,285],[370,545],[630,815],[905,1100],[1200,1690]], goal: [1460,1660], stars: [490,760,990,1330] },
 ];
 
+// Absorb arithmetic roundoff only, not a gameplay-sized collision allowance.
+const POSITION_EPSILON = 1e-8;
 export function isSafe(level, x) {
-  return level.platforms.some(([a,b]) => x >= a + 8 && x <= b - 8);
+  return level.platforms.some(([a,b]) => x >= a + 8 - POSITION_EPSILON && x <= b - 8 + POSITION_EPSILON);
 }
 export function inGoal(level, x) {
-  return x >= level.goal[0] && x <= level.goal[1] && isSafe(level, x);
+  return x >= level.goal[0] - POSITION_EPSILON && x <= level.goal[1] + POSITION_EPSILON && isSafe(level, x);
 }
 export function predictLanding(state, fast) {
   return state.x + (fast ? FAST_SPEED : SLOW_SPEED) * Math.max(0, PERIOD - state.phase);
 }
+// Stable codes for the UI; corrections describe the nearest safe landing.
+export function landingFailure(level, x) {
+  if (isSafe(level, x)) return null;
+  let nearest = null;
+  for (const [a, b] of level.platforms) {
+    const targetX = Math.max(a + 8, Math.min(b - 8, x));
+    if (!nearest || Math.abs(targetX - x) < Math.abs(nearest.targetX - x)) {
+      nearest = { reason: x < a ? 'undershoot' : x > b ? 'overshoot' : 'edge',
+        x, targetX, correction: targetX > x ? 'more-fast' : 'more-slow' };
+    }
+  }
+  return nearest;
+}
 export function createState(level) {
-  return { x: level.start, phase: 0, jumps: 0, status: 'playing', lastEvent: null, starCount: 0, collected: [] };
+  return { x: level.start, phase: 0, jumps: 0, status: 'playing', lastEvent: null, failure: null, starCount: 0, collected: [] };
 }
 // Deterministic, independent of animation framerate; called by both game and tests.
 export function advance(state, level, dt, fast) {
-  if (state.status !== 'playing' || dt <= 0) return [];
+  if (state.status !== 'playing' || !Number.isFinite(dt) || dt <= 0) return [];
   const events=[];
   let remain=dt;
-  while (remain > 1e-9 && state.status === 'playing') {
+  while (remain > 0 && state.status === 'playing') {
     const previousX = state.x;
     const step=Math.min(remain, PERIOD - state.phase);
     state.x += (fast ? FAST_SPEED : SLOW_SPEED)*step;
@@ -43,15 +58,15 @@ export function advance(state, level, dt, fast) {
     // Collect highly visible stars whenever the character crosses them mid-hop.
     for(let i=0;i<(level.stars?.length||0);i++){
       const star=level.stars[i];
-      if(!state.collected.includes(i) && previousX <= star+10 && state.x >= star-10){
+      if(!state.collected.includes(i) && previousX <= star+10+POSITION_EPSILON && state.x >= star-10-POSITION_EPSILON){
         state.collected.push(i);state.starCount++;events.push('star');
       }
     }
-    if (state.phase >= PERIOD - 1e-8) {
+    if (state.phase >= PERIOD - 1e-12) {
       state.phase = 0;
       state.jumps += 1;
       if (!isSafe(level,state.x)) {
-        state.status='dead'; events.push('fall');
+        state.status='dead'; state.failure=landingFailure(level,state.x); events.push('fall');
       } else if (inGoal(level,state.x)) {
         state.status='clear'; events.push('clear');
       } else {
@@ -59,5 +74,6 @@ export function advance(state, level, dt, fast) {
       }
     }
   }
+  if (events.length) state.lastEvent = events[events.length - 1];
   return events;
 }
