@@ -2,10 +2,10 @@
 <html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,viewport-fit=cover"/><meta name="theme-color" content="#111d31"/><title>HOPSCROLL | SPEED</title><link rel="stylesheet" href="./style.css" /></head>
 <body><main id="shell" aria-label="HOPSCROLL game">
   <canvas id="stage" width="360" height="640" aria-label="Auto-jumping character and moving platforms"></canvas>
-  <header id="hud"><div class="brand">HOP<span>SCROLL</span><small>✦ SLAPJAM #2</small></div><button id="restart" class="restart" type="button" aria-label="Restart stage">↻</button></header>
+  <header id="hud"><div class="brand">HOP<span>SCROLL</span><small>✦ SLAPJAM #2</small></div><div class="hud-buttons"><button id="mute" class="restart" type="button" aria-label="Mute sound" aria-pressed="false">🔊</button><button id="restart" class="restart" type="button" aria-label="Restart stage">↻</button></div></header>
   <div id="progress-area"><div id="stage-name">01 / 06 · THE FIRST GAP</div><div class="track"><div id="progress-bar"></div></div></div>
   <div id="speed-indicator"><span id="speed-label">SLOW</span><span id="speed-number">1.0×</span></div>
-  <div id="tip" aria-live="polite">Look at the NEXT landing marker.</div>
+  <div id="tip" aria-live="polite">Watch the NEXT landing marker.</div>
   <button id="accelerate" type="button" aria-label="Hold to speed up"><span class="button-small">HOLD TO</span><strong>SPEED UP <span>»</span></strong><span class="button-small">RELEASE TO SLOW DOWN</span></button>
   <div id="overlay" class="overlay" role="dialog" aria-modal="true"><div class="modal"><div class="eyebrow" id="modal-tag">SLAPJAM #2 · THEME: SPEED</div><div class="logo-hero">🐇</div><h1 id="modal-title">HOP<span>SCROLL</span></h1><p id="modal-message">① The bunny jumps by itself.<br/>② <em>HOLD</em> for FAST, release for SLOW.<br/>③ <em>LAND</em> inside the golden GOAL!</p><div class="instruction">HOLD = FAST <b>·</b> RELEASE = SLOW<br/><small>押すと加速、離すと減速</small></div><button id="modal-action" class="primary" type="button">LET'S HOP →</button><div class="modal-footer" id="modal-footer">One button. Land on the goal!</div></div></div>
   <div id="toast" aria-live="polite"></div>
