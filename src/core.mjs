@@ -3,10 +3,12 @@ export const SLOW_SPEED = 105;
 export const FAST_SPEED = 270;
 
 export const levels = [
-  { title: 'THE FIRST GAP', hint: 'Hold to fly farther.', start: 75,
+  // No gap, no death: the player gets to feel FAST and SLOW before any challenge.
+  // The golden finish line opens after the player has experienced both speeds.
+  { title: 'SPEED PLAYGROUND', hint: 'Hold to speed up, then let go!', start: 75,
+    platforms: [[0,1600]], goal: [500,1600], stars: [240,405], practice: true },
+  { title: 'THE FIRST GAP', hint: 'Now use your speed to cross the gap.', start: 75,
     platforms: [[0,260],[360,930]], goal: [745,900], stars: [475,650] },
-  { title: 'SLOW DOWN!', hint: 'Sometimes slower is safer.', start: 75,
-    platforms: [[0,255],[340,505],[605,1080]], goal: [895,1055], stars: [420,760] },
   { title: 'THREE LITTLE ISLANDS', hint: 'SLOW → FAST → SLOW. You can do this!', start: 75,
     platforms: [[0,245],[325,520],[555,785],[810,1280]], goal: [1020,1225], stars: [400,670,1080] },
   { title: 'THE LONG LEAP', hint: 'Change speed during a jump.', start: 75,
@@ -20,9 +22,11 @@ export const levels = [
 // Absorb arithmetic roundoff only, not a gameplay-sized collision allowance.
 const POSITION_EPSILON = 1e-8;
 export function isSafe(level, x) {
+  if (level.practice) return x >= level.platforms[0][0] + 8 - POSITION_EPSILON;
   return level.platforms.some(([a,b]) => x >= a + 8 - POSITION_EPSILON && x <= b - 8 + POSITION_EPSILON);
 }
 export function inGoal(level, x) {
+  if (level.practice) return x >= level.goal[0] - POSITION_EPSILON;
   return x >= level.goal[0] - POSITION_EPSILON && x <= level.goal[1] + POSITION_EPSILON && isSafe(level, x);
 }
 export function predictLanding(state, fast) {
@@ -42,7 +46,7 @@ export function landingFailure(level, x) {
   return nearest;
 }
 export function createState(level) {
-  return { x: level.start, phase: 0, jumps: 0, status: 'playing', lastEvent: null, failure: null, starCount: 0, collected: [] };
+  return { x: level.start, phase: 0, jumps: 0, status: 'playing', lastEvent: null, failure: null, starCount: 0, collected: [], triedFast: false, triedRelease: false };
 }
 // Deterministic, independent of animation framerate; called by both game and tests.
 export function advance(state, level, dt, fast) {
@@ -52,6 +56,10 @@ export function advance(state, level, dt, fast) {
   while (remain > 0 && state.status === 'playing') {
     const previousX = state.x;
     const step=Math.min(remain, PERIOD - state.phase);
+    if (level.practice && step > 0) {
+      if (fast) state.triedFast = true;
+      else if (state.triedFast) state.triedRelease = true;
+    }
     state.x += (fast ? FAST_SPEED : SLOW_SPEED)*step;
     state.phase += step;
     remain -= step;
@@ -67,7 +75,7 @@ export function advance(state, level, dt, fast) {
       state.jumps += 1;
       if (!isSafe(level,state.x)) {
         state.status='dead'; state.failure=landingFailure(level,state.x); events.push('fall');
-      } else if (inGoal(level,state.x)) {
+      } else if (inGoal(level,state.x) && (!level.practice || state.triedRelease)) {
         state.status='clear'; events.push('clear');
       } else {
         events.push('land');

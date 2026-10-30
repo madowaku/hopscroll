@@ -37,6 +37,24 @@ try {
     console.log('PASS viewport and input', viewport.width + 'x' + viewport.height);
   }
 
+  // Intro is genuinely safe: holding FAST cannot produce a fall; a real
+  // press and release opens the wide finish line.
+  {
+    const page = await openGame({width:360,height:640});
+    await page.keyboard.down('Space');
+    await page.waitForTimeout(230);
+    await page.keyboard.up('Space');
+    await page.waitForFunction(() => window.__HOPSCROLL_DEBUG__.state.triedRelease === true);
+    await page.evaluate(() => {
+      const s=window.__HOPSCROLL_DEBUG__.state;
+      s.x=540; s.phase=0.75;
+    });
+    await page.locator('#modal-message').waitFor({state:'visible',timeout:3000});
+    assert.ok((await page.locator('#modal-title').innerText()).includes('NICE'), 'Practice did not clear');
+    await page.close();
+    console.log('PASS practice: hold, release, land to clear');
+  }
+
   // Synthetic in-game state positions make the difficult-to-reproduce UI failures
   // deterministic; the actual requestAnimationFrame, core collision and DOM run.
   const scenarios = [
@@ -46,6 +64,7 @@ try {
   ];
   for (const scenario of scenarios) {
     const page = await openGame({width:360,height:640});
+    await page.evaluate(() => window.__HOPSCROLL_DEBUG__.reset(1,true));
     await page.evaluate(x => {
       const s = window.__HOPSCROLL_DEBUG__.state;
       s.x = x;
@@ -66,7 +85,7 @@ try {
     console.log('PASS browser failure/retry', scenario.id);
   }
   assert.deepEqual(pageErrors, [], 'browser console errors: ' + pageErrors.join(' | '));
-  console.log('PASS built itch HTML smoke suite: 3 viewports + input + 3 failure/retry cases');
+  console.log('PASS built itch HTML smoke suite: practice + 3 viewports + input + 3 failure/retry cases');
 } finally {
   await browser.close();
 }

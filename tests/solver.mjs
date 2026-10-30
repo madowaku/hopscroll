@@ -33,6 +33,16 @@ export function replay(level, path, frame=Infinity, shifts=[]) {
 // Enumerate whole-hop choices and half-hop switches. Retain three distinct paths
 // per exact displacement and depth, ranked by minimum landing clearance.
 export function solve(level) {
+  if(level.practice){
+    // Intentional introductory routes: the player must feel both speed settings.
+    return [[PERIOD,0,0,0,0], [PERIOD/2,0,0,0,0], [0,PERIOD,0,0,0]].map(path=>({
+      path,
+      x:replay(level,path).state.x,
+      clearance:50,
+      jitter:.02,
+      input:controls(path)
+    }));
+  }
   let frontier=[{x:level.start,path:[],clearance:Infinity}], solutions=[];
   for(let hop=0;hop<12;hop++) {
     const next=new Map();
