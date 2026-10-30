@@ -42,6 +42,17 @@ jobs:
           assert 'import ' not in html, 'ES module import left in standalone build'
           print(f'Standalone HTML OK ({p.stat().st_size} bytes)')
           PY
+      - name: Install lightweight browser test dependency
+        run: npm install --no-save --package-lock=false playwright-core@1.56.1
+      - name: Browser smoke test (actual itch HTML)
+        run: node tests/ui-smoke.mjs
+      - name: Upload browser QA captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hopscroll-browser-smoke
+          path: qa-screenshots/*.png
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: hopscroll-itch
