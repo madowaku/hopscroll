@@ -72,3 +72,64 @@ console.log('PASS: 6 stage solution simulations + fixed-tempo movement tests');
  const ev=advance(state,l,PERIOD,true);
  assert.ok(ev.includes('star') && state.starCount>=1,'Star should collect while passing through');
 }
+
+// Reproducible routes, independently jittered input transitions and frame sizes.
+const {witnesses,replay}=await import('./solver.mjs');
+for(const [index,routes] of witnesses.entries()) {
+  assert.equal(routes.length,3);
+  for(const route of routes) {
+    assert.ok(route.clearance>=13,'Avoid pixel-perfect witnesses');
+    const reference=replay(levels[index],route.path);
+    assert.equal(reference.state.status,'clear');
+    for(const frame of [1/30,1/60,1/120,1/144,.007,.113]) {
+      const actual=replay(levels[index],route.path,frame);
+      assert.equal(actual.state.status,'clear');
+      assert.equal(actual.state.jumps,reference.state.jumps);
+      assert.equal(actual.state.starCount,reference.state.starCount);
+      assert.deepEqual(actual.events,reference.events);
+      assert.ok(Math.abs(actual.state.x-reference.state.x)<1e-7);
+    }
+    const count=route.input.length-1, jitter=Math.floor(route.jitter*1000)/1000;
+    for(let mask=0;mask<2**count;mask++) {
+      const shifts=Array.from({length:count},(_,i)=>(mask&(1<<i)?1:-1)*jitter);
+      assert.equal(replay(levels[index],route.path,1/60,shifts).state.status,'clear',`Stage ${index+1} jitter ${mask}`);
+    }
+  }
+}
+{
+  const {landingFailure}=await import('../src/core.mjs');
+  const level={start:8,platforms:[[0,100],[200,500]],goal:[300,340],stars:[40,70]};
+  for(const [x,safe] of [[8,true],[92,true],[7.999,false],[92.001,false],[208,true]]) assert.equal(isSafe(level,x),safe);
+  assert.equal(landingFailure(level,95).reason,'edge');
+  assert.equal(landingFailure(level,110).correction,'more-slow');
+  assert.equal(landingFailure(level,190).correction,'more-fast');
+  const state=createState(level);
+  assert.deepEqual(advance(state,level,.6,false),['star','star']);
+  assert.equal(state.jumps,0);
+  advance(state,level,.18,false);
+  assert.equal(state.starCount,2);
+  advance(state,level,PERIOD,false);
+  assert.equal(state.status,'dead'); assert.equal(state.lastEvent,'fall'); assert.ok(state.failure);
+  const saved=JSON.stringify(state);
+  assert.deepEqual(advance(state,level,10,true),[]); assert.equal(JSON.stringify(state),saved);
+  const fresh=createState(level);
+  assert.deepEqual(fresh.collected,[]); assert.equal(fresh.failure,null); assert.equal(fresh.phase,0);
+  for(const dt of [0,-1,NaN,Infinity]) assert.deepEqual(advance(fresh,level,dt,true),[]);
+  assert.equal(fresh.x,8);
+}
+{
+  const level={start:100,platforms:[[0,1000]],goal:[140,160],stars:[]};
+  const state=createState(level);
+  advance(state,level,.5,false); assert.equal(state.status,'playing','Passing goal mid-hop cannot clear');
+  advance(state,level,PERIOD-.5,false); assert.equal(state.status,'playing','Landing beyond goal cannot clear');
+  for(const frame of [PERIOD,1/60,1/144]) {
+    const boundary={...level,start:140-SLOW_SPEED*PERIOD};
+    const s=createState(boundary); let remaining=PERIOD;
+    while(remaining>1e-12) {const dt=Math.min(frame,remaining);advance(s,boundary,dt,false);remaining-=dt;}
+    assert.equal(s.status,'clear','Inclusive goal boundary must survive frame subdivision');
+  }
+  const s=createState(level); advance(s,level,.31,false);
+  const prediction=predictLanding(s,true); advance(s,level,PERIOD-.31,true);
+  assert.ok(Math.abs(s.x-prediction)<1e-9);
+}
+console.log('PASS: 18 robust witnesses, input jitter corners, 30/60/120/144 Hz, collision/goal/star/retry contracts');
