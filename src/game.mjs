@@ -158,7 +158,8 @@ addEventListener('keyup',e=>{if(HOLD_KEYS.includes(e.code)){e.preventDefault();h
 $('restart').addEventListener('click',e=>{e.currentTarget.blur();reset(levelIndex,true);});
 $('mute').addEventListener('click',e=>{e.currentTarget.blur();toggleMute();});
 
-// ---- Coaching: Stage 1 (and any stage after 3 misses) points at the button only when switching would save the hop.
+// ---- Coaching: Stage 1 teaches the controls; Stage 2 is the first gap and receives
+// contextual help from attempt 1. Stages 3+ only show rescue cues after 3 misses.
 const landingScore=(level,x)=>(level.practice&&!state.triedRelease?1:inGoal(level,x)?2:isSafe(level,x)?1:0);
 function advice(level){
   if(level.practice && playing && state.status==='playing'){
@@ -166,7 +167,7 @@ function advice(level){
     if(!state.triedRelease) return 'release';
     return null;
   }
-  if(!playing||state.status!=='playing'||(levelIndex>0&&fails<3))return null;
+  if(!playing||state.status!=='playing'||(levelIndex>1&&fails<3))return null;
   const now=landingScore(level,predictLanding(state,pressed)),other=landingScore(level,predictLanding(state,!pressed));
   return other>now?(pressed?'release':'hold'):null;
 }
