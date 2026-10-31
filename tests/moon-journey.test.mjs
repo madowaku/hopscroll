@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {PERIOD,SLOW_SPEED,FAST_SPEED} from '../src/core.mjs';
 import {journeyLevels} from '../src/moon-journey-levels.mjs';
-import {createMoonState,advanceMoon,retryMoon,predictMoon} from '../src/moon-core.mjs';
+import {createMoonState,advanceMoon,retryMoon,predictMoon,isLandingSafe} from '../src/moon-core.mjs';
 import {solveMoon} from './moon-solver.mjs';
 assert.deepEqual([PERIOD,SLOW_SPEED,FAST_SPEED],[.78,105,270]);
 assert.deepEqual(journeyLevels.map(l=>l.id),['001','002','003','004','006','005']);
@@ -56,6 +56,40 @@ assert.equal(near.state.status,'clear');assert.equal(near.state.bonus,false);ass
  for(const [late,alive] of [[.1,true],[.15,false]]){const s=createMoonState(sea);for(const c of 'SS')advanceMoon(s,sea,PERIOD,false);advanceMoon(s,sea,PERIOD-late,true);
   const x=s.x+105*late;advanceMoon(s,sea,late,false);assert.equal(s.status!=='dead',alive,`006 meteor release ${late}s early at ${x.toFixed(1)}`);if(!alive)assert.equal(s.failure.reason,'meteor-bridge-slow');}
 }
+// Android playtest: Michiru visibly standing on the tip of a gold meteor
+// bridge must not fall just because core.isSafe's generic 8px margin
+// removed a sliver of the drawn surface. Wrong-speed failure still applies.
+{
+ const sea=journeyLevels.find(l=>l.id==='006');
+ const meteorBridges=sea.surfaces.filter(s=>s.kind==='meteor');
+ assert.ok(meteorBridges.length>1);
+ for(const bridge of meteorBridges){
+  for(const x of [bridge.a,bridge.a+1,bridge.b-1,bridge.b]){
+   assert.equal(isLandingSafe(sea,x,true,true),true,`FAST tip should land on gold slab at ${x}`);
+   assert.equal(isLandingSafe(sea,x,false,false),false,`SLOW tip must still fail at ${x}`);
+   for(const hz of [30,60,120,144]){
+    const state=createMoonState(sea),seconds=.1;
+    state.x=x-270*seconds;state.phase=PERIOD-seconds;
+    assert.equal(predictMoon(state,sea,true).safe,true,`FAST prediction at ${x}`);
+    let remain=seconds,events=[];
+    while(remain>1e-10){const dt=Math.min(1/hz,remain);events.push(...advanceMoon(state,sea,dt,true));remain-=dt;}
+    assert.equal(state.status,'playing',`FAST tip must land at ${x} @${hz}Hz`);
+    assert.equal(events.filter(e=>e.type==='landing').length,1);
+    assert.equal(events.find(e=>e.type==='landing').cue,'meteor');
+   }
+   const wrong=createMoonState(sea);wrong.x=x-105*.1;wrong.phase=PERIOD-.1;
+   assert.equal(predictMoon(wrong,sea,false).safe,false);
+   advanceMoon(wrong,sea,.1,false);
+   assert.equal(wrong.status,'dead');
+   assert.equal(wrong.failure.reason,'meteor-bridge-slow');
+  }
+  for(const x of [bridge.a-.05,bridge.b+.05]){
+   assert.equal(isLandingSafe(sea,x,true,true),false,`Outside visible bridge must still fail at ${x}`);
+  }
+ }
+ console.log('PASS Meteor Sea: visible edges land at FAST, wrong-speed / outside edges fail, 4 frame rates and prediction agree');
+}
+
 console.log('PASS Journey: six references, alternate solvers, frame rates, intro freedom, safe checkpoints, optional festival fork');
 
 // Shift every local group of up to three transitions ±30ms at four frame rates.
