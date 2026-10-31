@@ -1,0 +1,32 @@
+{
+  "sampleRate": 48000,
+  "metrics": {
+    "slow": {
+      "peak": 0.024387668818235397,
+      "rms": 0.001925400752349464,
+      "tail": 0
+    },
+    "fast": {
+      "peak": 0.01997245103120804,
+      "rms": 0.0014723573365986024,
+      "tail": 0
+    },
+    "bridge": {
+      "peak": 0.01790662668645382,
+      "rms": 0.0015497967042149244,
+      "tail": 0
+    },
+    "bonus": {
+      "peak": 0.020404834300279617,
+      "rms": 0.001837670813428939,
+      "tail": 0
+    },
+    "goal": {
+      "peak": 0.016024870797991753,
+      "rms": 0.0021198436641002493,
+      "tail": 0
+    }
+  },
+  "livePeak": 0.024440113455057144,
+  "evidence": "Chrome offline rendering + live AudioContext analyser; not human listening or hardware speaker validation"
+}
