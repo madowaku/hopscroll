@@ -3,7 +3,7 @@ on:
   push:
     branches: [main, codex/safe-first-hop]
   pull_request:
-    branches: [main, claude/polish-mobile, codex/moon-bridge-paths]
+    branches: [main, claude/polish-mobile, codex/moon-bridge-paths, claude/moon-journey-ui]
   workflow_dispatch:
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
       - name: Build Moon Journey offline ZIP
         run: |
           python scripts/build_moon_journey.py
-          python -m zipfile -e itch-dist/HOPSCROLL-Moon-Journey-v0.1.zip itch-dist/moon-journey-verified
+          python -m zipfile -e itch-dist/HOPSCROLL-Moon-Journey-v0.5.zip itch-dist/moon-journey-verified
       - name: Validate distribution content
         run: |
           python - <<'PY'
@@ -74,6 +74,7 @@ jobs:
           path: |
             docs/moon-lab-screenshots/*.png
             docs/moon-journey-screenshots/*.png
+            docs/moon-audio-metrics.json
           if-no-files-found: ignore
       - name: Upload browser QA captures
         if: always()
@@ -87,5 +88,5 @@ jobs:
           name: hopscroll-itch
           path: |
             itch-dist/index.html
-            itch-dist/HOPSCROLL-Moon-Journey-v0.1.zip
+            itch-dist/HOPSCROLL-Moon-Journey-v0.5.zip
           if-no-files-found: error
