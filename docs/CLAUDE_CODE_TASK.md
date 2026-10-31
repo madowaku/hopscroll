@@ -1,3 +1,5 @@
+> 2026-10-31 / Issue #13: 以下は旧キャンペーン作業の記録。現在は `integration/moon-journey-v01` → `claude/polish-mobile` のDraft PRで統合。本編入口は `moon-journey.html`、5面の採用データと検証・設計との差分は [MOON_JOURNEY_QA.md](MOON_JOURNEY_QA.md)。担当分担・統合順は現Issueを優先し、mainマージ・公開・LAN起動は行わない。
+
 # Claude Code Implementation Task · HOPSCROLL v0.2 (feel / visuals / mobile)
 
 You own `src/game.mjs` rendering and UI, `style.css`, `index.html`, and visual/audio QA docs. **Do not edit** `src/core.mjs` or `tests/*` unless integration owner approves. Work on `claude/polish-mobile` in a separate branch/worktree. Read `src/core.mjs` contracts, preserve all imports/exports.

@@ -95,5 +95,11 @@ try{
  const fallback=await open(360,640,true);assert.equal(await fallback.evaluate(()=>window.__MOON_LAB__.sprites),'broken');
  await fallback.locator('#action').tap();await fallback.clock.runFor(400);
  await fallback.screenshot({path:'docs/moon-journey-screenshots/fallback.png'});await fallback.close();
+ // Real-time narrow viewport performance/audio sanity, with the actual browser engine.
+ const live=await browser.newPage({viewport:{width:320,height:700}});live.on('pageerror',e=>errors.push(e.message));await live.goto(url);await live.locator('#action').click();
+ const metrics=await live.evaluate(()=>new Promise(resolve=>{const frames=[];let last=performance.now(),peak=0;function frame(now){frames.push(now-last);last=now;peak=Math.max(peak,window.__MOON_LAB__.audio.peak);if(window.__MOON_LAB__.state.jumps>=2){frames.sort((a,b)=>a-b);resolve({frames:frames.length,p95:frames[Math.floor(frames.length*.95)],peak,played:window.__MOON_LAB__.audio.played});}else requestAnimationFrame(frame);}requestAnimationFrame(frame);}));
+ assert.ok(metrics.frames>10);assert.ok(metrics.p95<100,'narrow viewport frame pacing exceeded sanity bound');assert.ok(metrics.peak>0,'built landing audio silent');assert.equal(metrics.played,2);
+ await live.locator('#mute').click();await live.waitForFunction(()=>window.__MOON_LAB__.audio.state==='suspended');await live.locator('#pause').click();assert.equal(await live.evaluate(()=>window.__MOON_LAB__.fast),false);
+ console.log('NARROW realtime',JSON.stringify(metrics));await live.close();
  assert.deepEqual(errors,[]);console.log('PASS Journey: five-stage flow and completion, three viewports, sprite poses/failure fallback, bridge demo, optional forks, four checkpoint recoveries, touchCancel/blur/retry');
 }finally{await browser.close();}

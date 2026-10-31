@@ -1,32 +1,28 @@
-# HOPSCROLL 🐇⚡ — v0.2
+# HOPSCROLL — Moon Journey v0.1
 
-**Theme: SPEED** · SLAPJAM #2.
+団子を持った月兎娘ミチルが、地球見祭へ向かう5ステージの旅。押している間は世界がFAST、離すとSLOW。自動ジャンプは0.78秒のまま、距離と着地する速さを選びます。
 
-A one-button, mobile-portrait rhythm/landing puzzle. The bunny jumps every **0.78 seconds**. Hold to scroll the world fast and release to scroll slowly. You control the world, not the jump.
+- 本編入口：`moon-journey.html`（001 月の庭 → 002 夜風の間 → 003 月光橋 → 004 ふたつの月道 → 005 地球見の夜）。
+- 月光橋はSLOW着地だけ安全。団子は任意・着地で獲得。月印からの再挑戦、最初から、ノー復帰のFULL MOONに対応。
+- ステージ選択は選択中の面だけ名前を開き、プレイ画面とNEXTを優先。Space / HOLD / プレイ画面の長押しで操作。
 
-## Play and build
+## Build and verify
 
-- Static source: `index.html`, `style.css`, `src/core.mjs`, `src/game.mjs`.
-- Local test: `python -m http.server 8000` then open `http://localhost:8000`.
-- Controls: hold Space (desktop) or press-and-hold (mobile) for FAST; release for SLOW.
-- Test: `node --test tests/core.test.mjs`.
-- Build itch single-file HTML: `python scripts/build.py`, then ZIP `itch-dist/index.html` at archive root.
-- Logical resolution 360×640, target portrait 720×1280.
+```text
+node --test tests/core.test.mjs tests/star-run.test.mjs tests/moon.test.mjs tests/moon-journey.test.mjs
+python scripts/build_moon_journey.py
+python -m zipfile -e itch-dist/HOPSCROLL-Moon-Journey-v0.1.zip itch-dist/moon-journey-verified
+python -m http.server 8000 --bind 127.0.0.1
+```
 
-## Status
+Source: `http://127.0.0.1:8000/moon-journey.html`. Extracted distribution: `http://127.0.0.1:8000/itch-dist/moon-journey-verified/index.html`.
+Set `JOURNEY_URL` to the latter URL and run `node tests/moon-journey-browser.mjs` with the repository's `playwright-core` dependency and Chrome available. The server is an optional local-only command; no LAN server is required.
 
-v0.2 prototype: six test-solvable stages, larger goal marker, clearer stars, Stage 1 tutorial, more forgiving Stage 3 and smaller bunny. Core tests passed locally. Browser and Android manual smoke-test still required before submission.
+The ZIP has `index.html` at its root and includes modules, sprite B, credits and provenance. It deliberately excludes third-party BGM. It is prepared for review, not published. Physical Android, itch embedding, human listening and fun/retry acceptance remain open; see [QA](docs/MOON_JOURNEY_QA.md).
 
-## AI agent coordination
+## Reversible experiments and history
 
-Please read `docs/HANDOFF_JA.md`, `docs/CODEX_TASK.md`, `docs/CLAUDE_CODE_TASK.md`, and `docs/INTEGRATION.md`. Codex handles logic/tests, Claude Code handles presentation. Use separate branches and Draft PRs; do not auto-merge.
-
-## Jam checklist
-
-- [ ] Check Android touch, audio and portrait layout.
-- [ ] Test FAST reset on pointercancel/app switch/restart.
-- [ ] Playtest Stage 1–3 without coaching.
-- [ ] Test itch embedded HTML before 2026-11-01 00:00 JST.
-- [ ] Credit tools actually used.
-
-Initial code and procedural graphics are provided for the user's own game development. Do not use unlicensed third-party assets.
+- `index.html`: original six-stage campaign; `python scripts/build.py` still creates its single-file `itch-dist/index.html` independently.
+- `moon-lab.html`: two-stage bridge/fork regression target using the same runtime.
+- `star-run.html`: independent **finite 24-hop** score experiment.
+- Current integration authority: [Issue #13](https://github.com/madowaku/hopscroll/issues/13), [stage design](docs/MOON_STAGE_PACK_v0.1.md), [approved character](docs/MOON_RABBIT_CHARACTER_v0.1.md), [QA and admitted coordinate changes](docs/MOON_JOURNEY_QA.md). Older division-of-work and merge instructions in HANDOFF/CODEX_TASK/CLAUDE_CODE_TASK/INTEGRATION describe earlier campaigns.

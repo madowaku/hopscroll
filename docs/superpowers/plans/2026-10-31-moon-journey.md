@@ -19,6 +19,6 @@
 
 ## Tasks
 - [x] Merge #9 → #12 → #10 → #11 with auditable merge commits; baseline physics/solver suites.
-- [ ] P0: src/michiru.mjs, src/moon-lab.mjs, moon-journey.html: approved poses/fallback and 003→004 next/retry flow. Browser input, screenshots, commit/push and Draft PR.
-- [ ] P1: src/moon-journey-levels.mjs, tests/moon-journey.test.mjs: 001/002/005 with safe intro, release decisions, optional fork and festival. Replay reference/alternate solver paths across frame rates and local timing jitter. Checkpoint envelopes. Commit/push.
-- [ ] Export: scripts/build_moon_journey.py, tests/moon-journey-browser.mjs and CI. Build ZIP root index and exercise extracted artifact in Chrome at 320×700, 360×640, 720×1280, including fallback, transitions, bonus/recovery, sound. Review screenshots. Update README/HANDOFF/QA with provenance, deviations and human/device limits. Commit/push and update Draft PR.
+- [x] P0: src/michiru.mjs, src/moon-lab.mjs, moon-journey.html: approved poses/fallback and 003→004 next/retry flow. Browser input, screenshots, commit/push and Draft PR.
+- [x] P1: src/moon-journey-levels.mjs, tests/moon-journey.test.mjs: 001/002/005 with safe intro, release decisions, optional fork and festival. Replay reference/alternate solver paths across frame rates and local timing jitter. Checkpoint envelopes. Commit/push.
+- [x] Export: scripts/build_moon_journey.py, tests/moon-journey-browser.mjs and CI. Build ZIP root index and exercise extracted artifact in Chrome at 320×700, 360×640, 720×1280, including fallback, transitions, bonus/recovery, sound. Review screenshots. Update README/HANDOFF/QA with provenance, deviations and human/device limits. Commit/push and update Draft PR.

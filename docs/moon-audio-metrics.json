@@ -27,6 +27,6 @@
       "tail": 0
     }
   },
-  "livePeak": 0.024440113455057144,
+  "livePeak": 0.01889077201485634,
   "evidence": "Chrome offline rendering + live AudioContext analyser; not human listening or hardware speaker validation"
 }

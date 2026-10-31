@@ -30,3 +30,6 @@ Use case: stylized-concept. Standalone Michiru game sprite, square 512x512, FULL
 - Processing: background keyed only where it is connected to the sheet border (flood fill on distance to the sampled navy, soft edge 10–46), navy un-mixed from anti-aliased edges; enclosed navy sleeve linings stay opaque. All frames scaled by the same factor (0.36, Pillow LANCZOS) so the character size never changes between poses.
 - `happy` is the `front` pose with the open eyes painted over in skin tone and closed smiling eyes, a small mouth and blush drawn on (Pillow, supersampled). It is a hand edit of generated art, not a separate generation.
 - The game draws these frames on the Canvas; the hand-authored `michiruShape` remains as the fallback when the atlas fails to load. `scripts/build.py` inlines the atlas into the itch build.
+
+## Current integration (Issue #13)
+The earlier Canvas-only card description records the initial experiment. The approved PR #12 B atlas now renders in both the original campaign and Moon Journey. Journey uses `src/michiru.mjs` with the original Canvas paths as image-load failure fallback; no new image generation or image editing was performed for this integration. Journey packaging copies this atlas and provenance into the offline ZIP and excludes all third-party music.
