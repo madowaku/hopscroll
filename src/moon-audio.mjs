@@ -1,6 +1,8 @@
 // Original procedural recipes. The optional BGM is the campaign's "Love it Rabbit" (えだまめ88, OpenTracks),
 // played only when the build put its path on <body data-bgm>; without it the game is cues only.
 // [offset seconds, start Hz, end Hz, duration seconds, relative gain]
+// Single source of truth for real-time AND offline audio-gain verification.
+export const MASTER_GAIN = 0.9;
 export const recipes = {
  // Each landing keeps its low body and adds a quieter two-octave layer with the same fall,
  // so phone speakers (which drop most sound under ~300 Hz) still carry it.
@@ -69,7 +71,7 @@ export function createMoonAudio(factory=()=>new (window.AudioContext||window.web
   paused=false;
   if(muted)return;
   try {
-   if(!context){context=factory();master=context.createGain();master.gain.value=.9;analyser=context.createAnalyser();analyser.fftSize=256;master.connect(analyser);analyser.connect(context.destination);}
+   if(!context){context=factory();master=context.createGain();master.gain.value=MASTER_GAIN;analyser=context.createAnalyser();analyser.fftSize=256;master.connect(analyser);analyser.connect(context.destination);}
    await context.resume();
    // A pending resume must not undo a mute or background transition.
    if(paused||muted){stop();stopBgm();await context.suspend();}else startBgm();

@@ -38,5 +38,8 @@
     }
   },
   "livePeak": 0.09610774368047714,
-  "evidence": "Chrome offline rendering + live AudioContext analyser; not human listening or hardware speaker validation"
+  "evidence": "Chrome offline rendering + live AudioContext analyser; not human listening or hardware speaker validation",
+  "measurementStatus": "HISTORICAL: pre-v0.5 real-time gain fix. Offline metrics measured at gain 0.32; not evidence of production 0.9 output.",
+  "offlineMasterGain": 0.32,
+  "nextMeasurement": "Run node tests/moon-audio-browser.mjs and inspect the current CI artifact for new metrics at the exported MASTER_GAIN."
 }

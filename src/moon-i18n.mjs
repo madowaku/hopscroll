@@ -18,6 +18,7 @@ const STRINGS={
   stage:(l,state)=>`Stage ${l.id} ${l.title}${state==='full'?'（FULL MOON）':state?'（クリア）':''}`,
   canvas:'自動で跳ぶ月兎。青白い道へ着地。薄藤の橋は指を離して着地すると安全。輪は次の着地点、赤は危険、金は団子。',
   hintPlay:'輪は今の速度のまま跳んだ着地点。赤は危険、金は団子の島。',hintReady:'輪は今の速度のまま跳んだ着地点。',
+  checkpointReady:'次の着地点を確認。最初はSLOWで安全。',
   checkpointUsed:'月印から再開中',checkpointPassed:'月印を通過',dangoHud:'団子を獲得',
   levels:{}
  },
@@ -39,6 +40,7 @@ const STRINGS={
   stage:(l,state)=>`Stage ${l.id} ${l.title}${state==='full'?' (FULL MOON)':state?' (cleared)':''}`,
   canvas:'A moon rabbit hops by herself. Land on the pale blue paths. Moon bridges hold only released landings. The ring is the next landing: red is danger, gold is dango.',
   hintPlay:'The ring is where this hop lands at the current speed. Red is danger, gold is the dango isle.',hintReady:'The ring is where this hop lands at the current speed.',
+  checkpointReady:'Check the landing ring. The first hop is safe at SLOW.',
   checkpointUsed:'Restarted from the moon mark',checkpointPassed:'Moon mark reached',dangoHud:'Dango collected',
   levels:{
    '001':['Moon Garden','Carry the dango to the moon road.'],

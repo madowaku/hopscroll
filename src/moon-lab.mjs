@@ -110,7 +110,7 @@ function render(){
  for(const m of [$('mute'),$('title-mute')])if(m){m.textContent=audio.muted?'♪̸':'♪';m.setAttribute('aria-pressed',String(audio.muted));m.setAttribute('aria-label',journey?t(audio.muted?'unmuteLabel':'muteLabel'):audio.muted?'効果音をオン':'効果音をミュート');}
  if(journey)setHint(t(mode==='playing'?'hintPlay':'hintReady'));
  else setHint(mode==='playing'?(level.id==='003'?'薄藤の橋は、離して着地。NEXTの輪が赤なら危険。':state.x>1250&&state.x<1720?'近い足場か、団子の島か。どちらからでも、その先へ。':'NEXTは今の速度を保った着地点。団子は着地で獲得。'):'NEXTの輪は、今の速度のまま跳んだ着地点。');
- if(mode==='checkpoint-ready')setHint('NEXTを確認。最初はSLOWで安全。');
+ if(mode==='checkpoint-ready')setHint(journey?t('checkpointReady'):'NEXTを確認。最初はSLOWで安全。');
  ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);ctx.clearRect(0,0,W,H);
  const camera=viewState.x-heroX;
  sky.drawSky(ctx,W,H,y,camera);
