@@ -11,7 +11,7 @@ html=html.replace('<link rel="stylesheet" href="./style.css" />', f'<style>\n{cs
 html=html.replace('<script type="module" src="./src/game.mjs"></script>', f'<script>\n{core}\n{game}\n</script>')
 # Inline local media so the itch build stays a single file. The BGM is not committed (third-party license):
 # drop it at assets/bgm/love-it-rabbit.mp3 locally; without it the game simply plays with SFX only.
-for rel, mime in [('assets/bgm/love-it-rabbit.mp3', 'audio/mpeg'), ('assets/img/star-rabbit.png', 'image/png')]:
+for rel, mime in [('assets/bgm/love-it-rabbit.mp3', 'audio/mpeg'), ('assets/img/star-rabbit.png', 'image/png'), ('assets/img/michiru-sprites.png', 'image/png')]:
     src = base/rel
     if src.exists():
         html = html.replace('./'+rel, f'data:{mime};base64,'+base64.b64encode(src.read_bytes()).decode('ascii'))
