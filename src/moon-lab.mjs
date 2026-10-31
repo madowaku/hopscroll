@@ -129,7 +129,11 @@ function render(){
 
  // The selected stage is already visible in the tabs; do not repeat its title in the sky.
  let bridgeCaptionDrawn=false;
- for(const surface of level.surfaces){const L=sx(surface.a),R=sx(surface.b),a=sx(surface.a+8),width=(surface.b-surface.a-16)*zoom;if(R<-10||L>W+10)continue;
+ for(const surface of level.surfaces){
+  const L=sx(surface.a),R=sx(surface.b);
+  // Gold meteor slabs now support the full visible span, including the tips.
+  const inset=surface.kind==='meteor'?0:8,a=sx(surface.a+inset),width=(surface.b-surface.a-inset*2)*zoom;
+  if(R<-10||L>W+10)continue;
   const bridge=surface.kind==='bridge';
   if(surface.kind==='meteor'){sky.drawMeteor(ctx,L,R,a,a+width,y,mode==='ready'?input.fast:meteorSolid(state,input.fast));continue;}
   // The bridge fades only after the grace period, exactly when collision would drop it; the frozen demo shows it at once.
