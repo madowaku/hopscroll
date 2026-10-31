@@ -365,55 +365,77 @@ function drawForecast(level,camera){
   ctx.font='900 11px system-ui';ctx.textAlign='center';const tw=ctx.measureText(label).width+12;
   rounded(sx-tw/2,FLOOR-58,tw,17,8,'#0b1d2ecc');ctx.fillStyle=color;ctx.fillText(label,sx,FLOOR-45.5);
 }
-// Michiru: right-facing human rabbit girl, origin at feet. Body is 2.7 heads tall.
-// Internal coordinates give a 60px upright silhouette at the unchanged RABBIT_SCALE.
+// Michiru: hand-drawn right profile, foot origin and caller transforms unchanged.
+// Upright bounds are approximately 120 units / 60 CSS px including ears.
 function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0}={}){
-  const white='#F4F0E7',lilac='#BFB7E8',navy='#243052',skin='#ffe5da',pink='#efb9ca';
   const f=Math.max(0,Math.min(1,flow));
+  const white='#f5f1fa',hair='#e5e0f2',shade='#aba1d5',navy='#243052',skin='#ffdfce',pink='#f3acbc';
   g.save();g.lineJoin='round';g.lineCap='round';
-  const path=(d,color,rim=true)=>{const p=new Path2D(d);g.fillStyle=color;
-    if(rim){g.strokeStyle='#d6edff';g.lineWidth=1.5;g.shadowColor='#c9eaff';g.shadowBlur=Math.min(glow,3);g.stroke(p);}
+  const path=(d,c,edge=true)=>{const p=new Path2D(d);g.fillStyle=c;
+    if(edge){g.strokeStyle='#d8eaff';g.lineWidth=1.2;g.shadowColor='#d8eaff';g.shadowBlur=Math.min(glow,1.5);g.stroke(p);}
     g.shadowBlur=0;g.fill(p);};
-  // Two human legs and small boots; soles stay at the original foot origin.
-  path('M -10 -29 L -1 -29 L -3 -5 L -12 -5 Z',skin);
-  path('M 5 -28 L 14 -28 L 12 -5 L 4 -5 Z',skin);
-  path('M -12 -9 Q -6 -7 -2 -8 L 0 -2 Q -5 1 -15 -1 Z',white);
-  path('M 4 -9 L 12 -9 Q 14 -4 18 -3 L 18 0 L 3 0 Z',white);
-  // Navy lining, crescent hem and a broad trailing sleeve, lifted by FAST.
-  path(`M -8 -64 Q -23 -53 ${-29-13*f} ${-26-20*f} Q -6 -16 19 -29 L 12 -60 Z`,navy);
-  path(`M -7 -65 Q -22 -57 ${-31-15*f} ${-27-21*f} Q -17 -34 -11 -29 Q 2 -13 22 -31 Q 8 -31 13 -60 Z`,lilac);
-  path(`M -9 -61 Q -23 -61 ${-38-12*f} ${-40-15*f} Q -33 -22 -14 -37 L 2 -53 Z`,white);
-  // Thin sash and its trailing ends; gold occupies very little area.
-  path(`M -12 -43 Q -22 ${-43-7*f} ${-34-16*f} ${-36-16*f} L -27 ${-33-16*f} Q -20 -41 -10 -40 Z`,'#FFD879',false);
-  path('M -12 -45 Q 1 -42 14 -46 L 14 -43 Q 0 -39 -12 -42 Z','#FFD879',false);
-  // Short silver bob and human face (no muzzle).
-  path('M -17 -65 Q -26 -84 -14 -93 Q 4 -105 19 -88 L 23 -64 Q 15 -57 -17 -65 Z',white);
-  // Far anatomical left ear: only the tip folds, with extra droop at SLOW.
-  g.save();g.translate(-14,-91);g.rotate(earA*.75-.12);
-  path('M -4 2 Q -6 -9 -6 -20 Q -6 -27 -12 -24 L -19 -13 Q -20 -8 -15 -10 L -10 -16 L 4 2 Z',white);
-  path('M -1 -2 L -9 -21 L -15 -12 L -10 -14 L 1 -2 Z',pink,false);g.restore();
-  // Near anatomical right ear remains straight; spring sweeps both backward at FAST.
-  g.save();g.translate(5,-94);g.rotate(earA*.85);
-  path('M -5 4 Q -9 -12 -4 -24 Q 0 -30 4 -24 Q 9 -10 5 4 Z',white);
-  path('M -2 -1 Q -5 -14 0 -23 Q 5 -12 2 -1 Z',pink,false);g.restore();
-  path('M -9 -88 Q 12 -94 20 -81 L 24 -73 Q 23 -61 10 -60 Q -6 -61 -11 -73 Z',skin,false);
-  path('M -19 -78 Q -21 -100 2 -97 Q 19 -97 22 -81 L 14 -85 L 12 -77 L 4 -88 Q 0 -76 -8 -74 L -7 -64 Q -19 -63 -19 -78 Z',white);
-  g.strokeStyle='#49302b';g.fillStyle='#49302b';g.lineWidth=1.8;
-  for(const x of [8,19]){
-    g.beginPath();
-    if(mood==='happy'){g.moveTo(x-2,-74);g.quadraticCurveTo(x,-78,x+2,-74);g.stroke();}
-    else if(mood==='dizzy'){g.moveTo(x-2,-79);g.lineTo(x+2,-74);g.moveTo(x+2,-79);g.lineTo(x-2,-74);g.stroke();}
-    else{g.ellipse(x,-76,2.4,3.5,0,0,Math.PI*2);g.fill();}
+  const line=(d,c=shade,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.stroke(new Path2D(d));};
+  const oval=(x,y,rx,ry,c)=>{g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=c;g.fill();};
+  // Bare knees and separate boots: the rear leg kicks back as speed rises.
+  path(`M -10 -31 L 0 -29 L ${-5-24*f} ${-9-10*f} L ${-14-24*f} ${-10-10*f} Z`,skin);
+  path(`M ${-14-24*f} ${-13-10*f} L ${-5-24*f} ${-11-10*f} L ${-2-24*f} ${-3-10*f} Q ${-8-24*f} ${1-10*f} ${-17-24*f} ${-3-10*f} Z`,white);
+  path(`M 3 -30 L 13 -31 L ${13+9*f} -10 L ${5+9*f} -8 Z`,skin);
+  path(`M ${4+9*f} -12 L ${14+9*f} -13 L ${16+9*f} -6 Q ${24+9*f} -4 ${21+9*f} 0 L ${4+9*f} 0 Z`,white);
+  line(`M ${4+9*f} -11 L ${14+9*f} -12`,shade,3);
+  line(`M ${-14-24*f} ${-12-10*f} L ${-5-24*f} ${-10-10*f}`,shade,3);
+  // Lean the torso forward about the hips, independently of the existing whole-body lean.
+  g.translate(0,-30);g.rotate(.24*f);g.translate(0,30);
+  path(`M -8 -64 Q -20 -52 ${-35-17*f} ${-25-28*f} Q -20 -15 15 -25 L 15 -58 Z`,navy);
+  path(`M -8 -63 Q -24 -54 ${-37-18*f} ${-30-27*f} Q -29 -20 -14 -26 Q -2 -15 19 -29 L 12 -59 Z`,white);
+  path('M -7 -58 L 12 -58 L 15 -27 Q 4 -20 -4 -30 Z',shade,false);
+  path('M -3 -58 L 8 -58 L 10 -28 Q 3 -23 -2 -30 Z',white,false);
+  path(`M -8 -44 Q -27 ${-38-15*f} ${-43-17*f} ${-39-17*f} L ${-35-20*f} ${-34-19*f} L -7 -41 Z`,'#e6bf73',false);
+  path('M -10 -46 L 13 -46 L 14 -42 L -10 -42 Z','#e6bf73',false);
+  // Broad rear sleeve, with a visible navy opening and lilac fold.
+  path(`M -7 -62 Q -20 -63 ${-38-21*f} ${-45-15*f} Q ${-42-17*f} ${-22-30*f} -12 -32 L 6 -53 Z`,hair);
+  path(`M ${-38-21*f} ${-45-15*f} Q ${-36-17*f} ${-25-28*f} -17 -34 Q -29 -37 ${-38-21*f} ${-45-15*f} Z`,navy,false);
+  line(`M -9 -57 Q -22 -49 ${-31-16*f} ${-42-12*f}`);
+  path('M -9 -66 L 12 -66 L 17 -56 L 1 -51 L -13 -57 Z',navy);
+  path('M -8 -64 L 2 -55 L 0 -48 L -16 -58 Z',hair);
+  path('M 11 -64 L 2 -55 L 9 -50 L 17 -58 Z',white);
+  // Bob silhouette is angular at the tips, never a round white animal head.
+  path(`M -22 -65 Q -29 -81 -19 -91 Q -5 -103 14 -94 Q 26 -90 26 -77 L 20 -64 L 8 -59 L -13 -60 L -22 -64 L ${-30-15*f} -65 L -24 -71 L ${-32-18*f} -72 Z`,hair);
+  // Far left ear: rising base, pronounced corner, then a broad downward tip.
+  g.save();g.translate(7,-94);g.rotate(earA*.22-.65*f);
+  path('M -4 3 Q 3 -15 18 -15 Q 24 -14 25 -8 L 30 4 Q 30 9 23 6 L 15 -4 L 15 -9 Q 6 -7 3 4 Z',shade);
+  path('M 0 0 Q 8 -12 18 -13 L 17 -8 Q 8 -6 4 3 Z',pink,false);
+  path('M 18 -14 Q 25 -14 25 -7 L 30 3 Q 31 10 23 5 L 16 -5 Z',white);
+  g.restore();
+  // Near right ear stays unbroken, sweeping far behind the head at FAST.
+  g.save();g.translate(-13,-93);g.rotate(earA*(.75+.35*f)-.3*f);
+  path('M -5 4 Q -12 -12 -5 -28 Q -3 -32 0 -27 Q 10 -11 5 4 Z',white);
+  path('M -2 0 Q -7 -13 -3 -23 Q 5 -11 2 1 Z',pink,false);g.restore();
+  // Human cheek/chin contour: no projecting nose or muzzle.
+  path('M -7 -87 Q 11 -94 22 -82 L 23 -72 Q 24 -62 14 -59 Q 3 -57 -6 -65 Z',skin,false);
+  oval(-6,-70,4,5,skin);
+  // Crown, long bangs, and the cheek-framing side lock.
+  path('M -24 -76 Q -26 -95 -8 -98 Q 16 -102 25 -83 L 25 -76 L 20 -79 L 16 -88 Q 17 -80 13 -75 Q 6 -79 3 -89 Q 2 -78 -5 -74 L -7 -63 L -16 -60 L -22 -65 L -18 -69 L -26 -67 Z',hair);
+  path('M -18 -87 Q -20 -73 -15 -65 L -10 -66 L -10 -73 Q -13 -77 -10 -91 Z',white,false);
+  line('M -6 -94 Q -12 -83 -8 -73 M 4 -94 Q 5 -82 13 -76 M -20 -79 L -20 -70');
+  // One large profile eye, eyelash and small blush; closed smile / X on cards.
+  if(mood==='happy')line('M 11 -72 Q 16 -79 20 -72','#50342f',2);
+  else if(mood==='dizzy')line('M 11 -78 L 19 -70 M 19 -78 L 11 -70','#50342f',2);
+  else{
+    oval(16,-73.5,4.2,6,'#50342f');oval(17,-71.5,2.6,3.4,'#795044');oval(17.2,-76,1.3,1.8,'#fff8ef');
+    line('M 10 -78 Q 15 -82 20 -78','#50342f',1.4);
   }
-  g.beginPath();g.moveTo(13,-67);g.quadraticCurveTo(15,mood==='happy'?-63:-66,17,-67);g.stroke();
-  path('M 3 -70 Q 8 -73 10 -70 Q 8 -67 3 -70 Z',pink,false);
-  // Front sleeve cups the skewer. Three distinct dumplings stay with her in every mood.
-  path(`M 9 -58 Q -4 -55 ${-5-8*f} -38 Q 10 -35 24 -49 L 22 -57 Q 18 -52 9 -58 Z`,white);
-  path('M 22 -47 L 24 -67 L 26 -67 L 24 -46 Z','#b38c62',false);
-  for(const [x,y,c] of [[25,-68,white],[26,-77,white],[27,-86,pink]]){
-    g.beginPath();g.arc(x,y,4.5,0,Math.PI*2);g.fillStyle=c;g.strokeStyle=navy;g.lineWidth=1;g.fill();g.stroke();
-  }
-  path('M 19 -54 Q 20 -60 25 -58 Q 29 -54 25 -50 L 21 -49 Z',skin,false);
+  oval(17,-65.5,4,1.7,pink);
+  line('M 21 -69 L 22 -68','#bc8279',.7);
+  line(mood==='happy'?'M 16 -62 Q 18 -60 20 -62':'M 18 -62 L 20 -62','#9b665f',.8);
+  // Front sleeve and hand move inward to protect the skewer during FAST.
+  g.save();g.translate(-8*f,13*f);
+  path(`M 8 -56 Q -2 -52 ${-5-12*f} ${-32-14*f} Q 10 -27 26 -46 L 23 -54 Q 17 -50 8 -56 Z`,white);
+  path('M 23 -54 Q 17 -48 23 -43 L 28 -47 Z',navy,false);
+  line('M 7 -51 Q 5 -43 1 -39');
+  line('M 27 -44 L 35 -78','#ac8058',1.7);
+  oval(29,-60,4.8,4.8,pink);oval(31,-69,4.8,4.8,'#fff0e6');oval(33,-78,4.8,4.8,'#fff0e6');
+  path('M 23 -53 Q 28 -57 30 -52 L 28 -46 Q 24 -44 22 -48 Z',skin,false);
+  g.restore();g.restore();
   g.restore();
 }
 function drawTrail(camera){
