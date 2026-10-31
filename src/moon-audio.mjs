@@ -6,8 +6,8 @@ export const MASTER_GAIN = 0.9;
 export const recipes = {
  // Each landing keeps its low body and adds a quieter two-octave layer with the same fall,
  // so phone speakers (which drop most sound under ~300 Hz) still carry it.
- slow:[[0,150,95,.13,.65],[0,600,380,.09,.35]],
- fast:[[0,260,175,.10,.55],[0,1040,700,.07,.32]],
+ slow:[[0,150,95,.13,.60],[0,600,380,.11,.48]],
+ fast:[[0,260,175,.10,.52],[0,1040,700,.09,.42]],
  bridge:[[0,880,880,.23,.38],[0,1320,1320,.16,.12]],
  bonus:[[0,420,560,.17,.55]],
  goal:[[0,523.25,523.25,.13,.42],[.11,659.25,659.25,.13,.38],[.22,783.99,783.99,.18,.35]],
@@ -18,7 +18,8 @@ export function scheduleCue(context,destination,cue,hop=0) {
  const nodes=[],start=context.currentTime;
  for(const [offset,from,to,duration,volume] of recipes[cue]||[]) {
   const oscillator=context.createOscillator(),gain=context.createGain(),at=start+offset;
-  oscillator.type='sine';oscillator.frequency.setValueAtTime(from,at);
+  // Add upper harmonics to the low notes: tiny Android phone speakers attenuate bass.
+  oscillator.type=from<300?'triangle':'sine';oscillator.frequency.setValueAtTime(from,at);
   oscillator.frequency.exponentialRampToValueAtTime(to,at+duration);
   oscillator.detune.setValueAtTime([0,8,-6,4][hop%4],at);
   gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(volume*.12,at+.008);
@@ -67,15 +68,36 @@ export function createMoonAudio(factory=()=>new (window.AudioContext||window.web
    src.connect(filter);filter.connect(gain);gain.connect(master);src.start(t);src.stop(t+.26);
   }catch{}
  }
+ function initialize(){
+  if(context)return;
+  context=factory();master=context.createGain();master.gain.value=MASTER_GAIN;
+  analyser=context.createAnalyser();analyser.fftSize=256;
+  master.connect(analyser);analyser.connect(context.destination);
+ }
  async function activate(){
   paused=false;
   if(muted)return;
   try {
-   if(!context){context=factory();master=context.createGain();master.gain.value=MASTER_GAIN;analyser=context.createAnalyser();analyser.fftSize=256;master.connect(analyser);analyser.connect(context.destination);}
+   initialize();
    await context.resume();
    // A pending resume must not undo a mute or background transition.
    if(paused||muted){stop();stopBgm();await context.suspend();}else startBgm();
   }catch{/* Unsupported or blocked audio never blocks the game. */}
+ }
+ // A user-gesture diagnostic, playable even on the title screen while gameplay is paused.
+ // Do not unpause gameplay, start licensed BGM, or count it as a successful landing.
+ async function preview(){
+  if(muted)return false;
+  try{
+   initialize();await context.resume();
+   if(muted)return false;
+   scheduleCue(context,master,'bridge');lastCue='preview';
+   if(paused){
+    const ctx=context;
+    setTimeout(()=>{if(paused&&context===ctx&&ctx.state==='running')void ctx.suspend().catch(()=>{});},500);
+   }
+   return true;
+  }catch{return false;}
  }
  function suspend(){paused=true;stop();stopBgm();if(context)void context.suspend().catch(()=>{});}
  function setMuted(value){muted=value;stop();if(muted){stopBgm();if(context)void context.suspend().catch(()=>{});}else if(!paused)void activate();}
@@ -85,7 +107,7 @@ export function createMoonAudio(factory=()=>new (window.AudioContext||window.web
    stop();voices=scheduleCue(context,master,event.cue,event.hop);played++;lastCue=event.cue;
   }
  }
- return {activate,suspend,setMuted,play,stop,whoosh,mix,cue,get muted(){return muted;},get diagnostics(){
+ return {activate,preview,suspend,setMuted,play,stop,whoosh,mix,cue,get muted(){return muted;},get diagnostics(){
   let peak=0;if(analyser){const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);for(const v of data)peak=Math.max(peak,Math.abs(v));}
   return {state:context?.state||'uninitialized',muted,paused,played,lastCue,peak,bgm:bgmSrc?(bgmBroken?'broken':bgm&&!bgm.paused?'playing':'idle'):'none'};
  }};

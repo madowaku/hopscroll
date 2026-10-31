@@ -77,6 +77,11 @@ try{
  {const p=await browser.newPage({viewport:{width:360,height:640},isMobile:true,hasTouch:true});p.on('pageerror',e=>errors.push(e.message));await p.clock.install();await p.goto(url);
   await p.waitForFunction(()=>window.__MOON_LAB__?.sprites!=='loading');const before=await p.evaluate(()=>document.documentElement.lang);
   await p.locator('#title-lang').tap();const after=await p.evaluate(()=>document.documentElement.lang);assert.notEqual(after,before,'language did not switch');
+  // Android-style user gesture: sound OFF then ON previews a real audible
+  // bridge chime even on the paused title screen (no stage progress required).
+  await p.locator('#title-mute').tap();assert.equal(await p.evaluate(()=>window.__MOON_LAB__.audio.muted),true);
+  await p.locator('#title-mute').tap();await p.waitForFunction(()=>window.__MOON_LAB__.audio.lastCue==='preview');
+  assert.equal(await p.evaluate(()=>window.__MOON_LAB__.audio.muted),false);
   await p.locator('#title-start').tap();assert.equal(await p.locator('#title-screen').isVisible(),false);assert.equal(await p.evaluate(()=>window.__MOON_LAB__.mode),'playing');assert.equal(await p.evaluate(()=>window.__MOON_LAB__.stage),'001');
   await p.locator('#pause').tap();assert.equal(await p.evaluate(()=>window.__MOON_LAB__.mode),'paused');await p.locator('#home').tap();assert.equal(await p.locator('#title-screen').isVisible(),true);await p.close();}
  const page=await open();

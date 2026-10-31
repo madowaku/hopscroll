@@ -29,7 +29,14 @@ function labelStops(){document.querySelectorAll('[data-stage]').forEach((b,i)=>{
 function select(index){audio.suspend();clearInput();stageIndex=index;level=moonLevels[index];state=createMoonState(level);mode='ready';if(eyebrow)eyebrow.textContent=`STAGE ${level.id}`;
  labelStops();
  show(lv(level).title,level.id==='003'?t('bridgeIntro'):lv(level).subtitle,t('start'));render();}
-function start(fromStart=false){clearInput();sky.reset();state=retryMoon(state,level,fromStart);mode=state.usedCheckpoint?'checkpoint-ready':'playing';audio.stop();if(mode==='playing')void audio.activate();else audio.suspend();stats.attempts++;$('panel').hidden=true;render();}
+let startupChimePlayed=false;
+function start(fromStart=false){clearInput();sky.reset();state=retryMoon(state,level,fromStart);mode=state.usedCheckpoint?'checkpoint-ready':'playing';audio.stop();
+ if(mode==='playing')void audio.activate().then(()=>{
+  // One small confirmation on the first real user-gesture start. Never delay gameplay.
+  if(journey&&!startupChimePlayed&&!audio.muted&&mode==='playing'){
+   startupChimePlayed=true;audio.cue('bridge');
+  }
+ });else audio.suspend();stats.attempts++;$('panel').hidden=true;render();}
 function pause(help=false){if(mode!=='playing')return;audio.suspend();clearInput();mode='paused';if(help)stats.hints++;show(help?t('helpTitle'):t('pause'),help?t('help'):'',t('resume'));}
 $('action').addEventListener('click',()=>{if(mode==='paused'){clearInput();void audio.activate();mode='playing';$('panel').hidden=true;}else if(journey&&state.status==='clear'&&stageIndex<moonLevels.length-1)select(stageIndex+1);else if(journey&&state.status==='clear'){select(0);showTitle();}else start(state.status==='clear');});
 $('restart').addEventListener('click',()=>start(true));$('pause').addEventListener('click',()=>pause());$('help').addEventListener('click',()=>{if(mode==='playing')pause(true);else if(mode==='ready'||journey){$('description').textContent=journey?t('help'):'押して進み、離して着地。緑の輪が安全。';stats.hints++;}});
@@ -187,7 +194,14 @@ function frame(time){
  render();if(titleOpen())renderTitle();requestAnimationFrame(frame);}
 let wasFast=false;
 $('resume').addEventListener('click',()=>{clearInput();void audio.activate();mode='playing';render();});
-$('mute').addEventListener('click',()=>{audio.setMuted(!audio.muted);render();});
+function toggleSound(){
+ const wasMuted=audio.muted;
+ audio.setMuted(!wasMuted);
+ // On Android the on-screen ♪ is also an audible sound check when re-enabled.
+ if(wasMuted)void audio.preview();
+ render();
+}
+$('mute').addEventListener('click',toggleSound);
 // ---- Journey: title screen, language switch, way home.
 const titleScreen=$('title-screen'),titleArt=$('title-art'),titleCtx=titleArt?.getContext('2d');
 const titleOpen=()=>!!titleScreen&&!titleScreen.hidden;
@@ -221,7 +235,7 @@ function applyLang(){
 if(journey){
  const keyArt=$('title-img');if(keyArt){const on=()=>titleScreen.classList.add('has-art');if(keyArt.complete&&keyArt.naturalWidth)on();else keyArt.addEventListener('load',on,{once:true});}
  for(const b of [$('lang'),$('title-lang')])b.addEventListener('click',()=>{i18n.toggle();applyLang();});
- $('title-mute').addEventListener('click',()=>{audio.setMuted(!audio.muted);render();});
+ $('title-mute').addEventListener('click',toggleSound);
  $('title-start').addEventListener('click',()=>{hideTitle();const open=moonLevels.findIndex((_,i)=>!results[i]);select(open<0?0:open);start();});
  $('title-select').addEventListener('click',()=>{hideTitle();select(stageIndex);});
  $('home').addEventListener('click',showTitle);
