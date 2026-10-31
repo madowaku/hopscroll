@@ -11,7 +11,7 @@ export function solveMoon(level,{wantBonus=false,avoidBridges=false}={}) {
    for(const [dt,fast]of steps)advanceMoon(state,level,dt,fast);
    if(state.status==='dead')continue;
    const lastFast=steps[1][0]>1e-10?steps[1][1]:steps[0][1];
-   const support=level.surfaces.find(s=>state.x>=s.a+8-1e-8&&state.x<=s.b-8+1e-8&&(s.kind!=='bridge'||!lastFast));
+   const support=level.surfaces.find(s=>state.x>=s.a+8-1e-8&&state.x<=s.b-8+1e-8&&(s.kind==='bridge'?!lastFast:s.kind==='meteor'?lastFast:true));
    if(!support||Math.min(state.x-support.a-8,support.b-8-state.x)<18||(avoidBridges&&support.kind==='bridge'))continue;
    const path=[...node.path,{fastSeconds,fastFirst,x:+state.x.toFixed(3),support:support.kind,bonus:state.bonus}];
    if(state.status==='clear'&&(!wantBonus||state.bonus))return path;

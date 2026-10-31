@@ -7,44 +7,46 @@
 <link rel="stylesheet" href="moon-lab.css">
 </head>
 <body data-journey="true"><main>
-<header class="topbar">
-  <span class="brand">HOPSCROLL <span class="lab">/ MOON JOURNEY</span></span>
-  <div class="utilities">
-    <button id="help" class="icon-button" aria-label="遊び方" title="遊び方">?</button>
-    <button id="mute" class="icon-button" aria-label="効果音のミュート" aria-pressed="false" title="効果音">♪</button>
-  </div>
+<h1 class="sr-only">HOPSCROLL Moon Journey</h1>
+<header class="journey-bar">
+  <button id="pause" class="icon-button" aria-label="一時停止">Ⅱ</button>
+  <nav class="stage-tabs route" aria-label="ステージ"></nav>
+  <button id="mute" class="icon-button" aria-label="効果音をミュート" aria-pressed="false">♪</button>
 </header>
-<nav class="stage-tabs" aria-label="ステージ">
-  <button data-stage="0" aria-pressed="true"><span class="stage-number">03</span> 月光橋</button>
-  <button data-stage="1" aria-pressed="false"><span class="stage-number">04</span> ふたつの月道</button>
-</nav>
 <div class="world">
   <div class="hud">
-    <span id="progress">HOP 0</span>
-    <span id="checkpoint" hidden>☾ 月印</span>
-    <span id="bonus" hidden>● 団子</span>
-    <button id="pause" class="icon-button" aria-label="一時停止" title="一時停止">Ⅱ</button>
+    <span id="progress" class="sr-only">HOP 0</span>
+    <span id="checkpoint" hidden></span>
+    <span id="bonus" hidden></span>
   </div>
-  <canvas id="world" width="360" height="420" aria-label="自動で跳ぶ月兎。白い足場へ着地。薄藤の橋は指を離して着地すると安全。緑の輪は安全な次の着地点、赤は危険。"></canvas>
+  <canvas id="world" width="360" height="420" aria-label="自動で跳ぶ月兎。白い足場へ着地。薄藤の橋は指を離して着地すると安全。輪は次の着地点、赤は危険。"></canvas>
+  <p id="touch-cue" aria-hidden="true"><b>画面を押す → FAST</b><b>離す → SLOW</b></p>
+  <button id="hold" aria-label="押している間はFAST、離すとSLOW。画面のどこを押してもよい"><svg class="bunny" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 3c2.5 0 3.5 4 3.6 9.2A8 8 0 0 1 17.4 12c.4-5 1.6-9 4-9 2.6 0 2.6 5.3 1 10.1A8.5 8.5 0 1 1 9.6 13C8 8.3 8.4 3 11 3z"/></svg><strong>HOLD</strong><small>FAST</small></button>
   <section id="panel" aria-live="polite">
-    <p id="eyebrow">STAGE 003</p>
-    <h2 id="title">しずかな月光橋</h2>
+    <button id="home" class="icon-button" aria-label="タイトルへ">⌂</button>
+    <div class="panel-tools"><button id="lang" class="icon-button lang-button" aria-label="Switch to English">EN</button><button id="help" class="icon-button" aria-label="遊び方">?</button></div>
+    <h2 id="title">月の庭</h2>
     <p id="description"></p>
-    <div id="demo">
-      <span id="bridge-demo">SLOW：橋が光る・踏める</span>
-      <small>HOLDを押して、橋の変化を見よう</small>
-    </div>
     <div class="panel-actions">
       <button id="action">はじめる</button>
       <button id="restart" hidden>最初から</button>
     </div>
   </section>
 </div>
-<p id="hint" class="sr-only" aria-live="polite">NEXTは次に着地する場所。</p>
-<button id="resume" hidden>▶ SLOWで再開</button>
-<button id="hold" aria-label="押している間はFAST、離すとSLOW">
-  <strong id="speed">HOLD → FAST</strong>
-</button>
-<p class="sr-only">画面長押しまたはSpaceキーでもFAST。指を離すとSLOW。一時停止で中断できます。</p>
+<p id="hint" class="sr-only" aria-live="polite"></p>
+<button id="resume" hidden>▶ つづける</button>
+<section id="title-screen" aria-labelledby="title-logo">
+  <canvas id="title-art" aria-hidden="true"></canvas>
+  <img id="title-img" src="assets/img/title-earthwatch.jpg" alt="" decoding="async">
+  <div class="title-logo" id="title-logo"><span class="logo">HOPSCROLL</span><span class="logo-sub" id="title-sub">Moon Rabbit Journey</span></div>
+  <div class="title-actions">
+    <button id="title-start">START</button>
+    <button id="title-select">STAGE SELECT</button>
+  </div>
+  <div class="title-tools">
+    <button id="title-lang" class="icon-button lang-button" aria-label="Switch to English">EN</button>
+    <button id="title-mute" class="icon-button" aria-label="効果音をミュート" aria-pressed="false">♪</button>
+  </div>
+</section>
 </main><script type="module" src="src/moon-lab.mjs"></script></body>
 </html>

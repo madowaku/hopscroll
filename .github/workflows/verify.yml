@@ -32,6 +32,8 @@ jobs:
           node --check src/moon-core.mjs
           node --check src/moon-levels.mjs
           node --check src/moon-lab.mjs
+          node --check src/moon-sky.mjs
+          node --check src/moon-i18n.mjs
           node --check src/moon-audio.mjs
           node --check src/michiru.mjs
           node --check src/moon-journey-levels.mjs

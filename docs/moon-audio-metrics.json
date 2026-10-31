@@ -2,13 +2,13 @@
   "sampleRate": 48000,
   "metrics": {
     "slow": {
-      "peak": 0.024387668818235397,
-      "rms": 0.001925400752349464,
+      "peak": 0.034230466932058334,
+      "rms": 0.002130670976006618,
       "tail": 0
     },
     "fast": {
-      "peak": 0.01997245103120804,
-      "rms": 0.0014723573365986024,
+      "peak": 0.028416821733117104,
+      "rms": 0.001663128934177418,
       "tail": 0
     },
     "bridge": {
@@ -25,8 +25,18 @@
       "peak": 0.016024870797991753,
       "rms": 0.0021198436641002493,
       "tail": 0
+    },
+    "miss": {
+      "peak": 0.022860487923026085,
+      "rms": 0.0027942173427563544,
+      "tail": 0
+    },
+    "meteor": {
+      "peak": 0.01215959433466196,
+      "rms": 0.0011790383651635102,
+      "tail": 0
     }
   },
-  "livePeak": 0.01889077201485634,
+  "livePeak": 0.09610774368047714,
   "evidence": "Chrome offline rendering + live AudioContext analyser; not human listening or hardware speaker validation"
 }

@@ -85,7 +85,7 @@ export function createMichiru(){
   if(status==='ready'){
    const f=MICHIRU_FRAMES[pose];g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.shadowColor='#cfe6ff';g.shadowBlur=4;
    g.drawImage(atlas,f[0],f[1],f[2],f[3],-f[4]*MICHIRU_UNIT,-f[3]*MICHIRU_UNIT,f[2]*MICHIRU_UNIT,f[3]*MICHIRU_UNIT);
-  }else michiruShape(g,{flow:pose==='fast'?1:0,crouch:pose==='land'?1:0,mood:pose==='happy'?'happy':'play'});
+  }else if(status==='broken')michiruShape(g,{flow:pose==='fast'?1:0,crouch:pose==='land'?1:0,mood:pose==='happy'?'happy':'play'});
   g.restore();
  }};
 }

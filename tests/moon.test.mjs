@@ -53,6 +53,13 @@ for(const level of moonLevels){
  assert.equal(restored.status,'clear');assert.equal(restored.fullMoon,false);assert.equal(retryMoon(restored,level,true).usedCheckpoint,false);
  const fresh=createMoonState(level),p=predictMoon(fresh,level,false);advanceMoon(fresh,level,PERIOD,false);assert.ok(Math.abs(fresh.x-p.x)<1e-8);assert.equal(p.safe,true);
 }
+// Bridge grace: FAST pressed under BRIDGE_GRACE before touchdown still lands; held longer, the bridge is gone.
+for(const [early,alive] of [[.1,true],[.2,false]]){
+ const s=createMoonState(bridge);s.x=824.4-105*(PERIOD-early)-270*early;
+ assert.equal(predictMoon(s,bridge,false).safe,true);advanceMoon(s,bridge,PERIOD-early,false);
+ assert.equal(predictMoon(s,bridge,true).safe,alive);advanceMoon(s,bridge,early,true);
+ assert.equal(s.status!=='dead',alive,`FAST ${early}s before a bridge landing`);
+}
 console.log('PASS Moon: both full routes, branch reunion/landing bonus, bridge state, frame/jitter, checkpoint/FULL MOON');
 if(process.argv.includes('--trace'))for(const level of moonLevels)console.log(level.id,JSON.stringify(replay(level).trace));
 

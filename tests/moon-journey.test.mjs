@@ -4,7 +4,7 @@ import {journeyLevels} from '../src/moon-journey-levels.mjs';
 import {createMoonState,advanceMoon,retryMoon,predictMoon} from '../src/moon-core.mjs';
 import {solveMoon} from './moon-solver.mjs';
 assert.deepEqual([PERIOD,SLOW_SPEED,FAST_SPEED],[.78,105,270]);
-assert.deepEqual(journeyLevels.map(l=>l.id),['001','002','003','004','005']);
+assert.deepEqual(journeyLevels.map(l=>l.id),['001','002','003','004','006','005']);
 const chunks=c=>c==='M'?[[.5,true],[.28,false]]:[[PERIOD,c==='F']];
 function play(level,route=level.route,hz=60,state=createMoonState(level)){
  const trace=[];
@@ -47,13 +47,20 @@ const intro=journeyLevels[0];for(let a=0;a<=.78;a+=.06)for(let b=0;b<=.78;b+=.06
  const s=createMoonState(intro);for(const held of [a,b,c]){advanceMoon(s,intro,held,true);advanceMoon(s,intro,PERIOD-held,false);}assert.equal(s.status,'playing');
 }
 // 005 contains the same equal-distance choice; bonus is optional and landing-only.
-const finale=journeyLevels[4],near=play(finale,finale.route.slice(0,20)+'SF'+finale.route.slice(22)),far=play(finale);
+const finale=journeyLevels.find(l=>l.festival),near=play(finale,finale.route.slice(0,20)+'SF'+finale.route.slice(22)),far=play(finale);
 assert.equal(near.state.status,'clear');assert.equal(near.state.bonus,false);assert.equal(far.state.bonus,true);assert.equal(near.trace[21].x,far.trace[21].x);
+// 006 Meteor Sea: changing the speed of any single reference hop falls (each bridge decides the hop).
+{const sea=journeyLevels.find(l=>l.id==='006');
+ for(let i=0;i<sea.route.length;i++)for(const c of 'SFM')if(c!==sea.route[i]){const s=play(sea,sea.route.slice(0,i)+c+sea.route.slice(i+1)).state;assert.equal(s.status,'dead',`006 hop ${i+1} as ${c} survived`);}
+ // Meteor grace: released 0.1s before touchdown still lands; released 0.15s before falls.
+ for(const [late,alive] of [[.1,true],[.15,false]]){const s=createMoonState(sea);for(const c of 'SS')advanceMoon(s,sea,PERIOD,false);advanceMoon(s,sea,PERIOD-late,true);
+  const x=s.x+105*late;advanceMoon(s,sea,late,false);assert.equal(s.status!=='dead',alive,`006 meteor release ${late}s early at ${x.toFixed(1)}`);if(!alive)assert.equal(s.failure.reason,'meteor-bridge-slow');}
+}
 console.log('PASS Journey: five references, alternate solvers, frame rates, intro freedom, safe checkpoints, optional festival fork');
 
 // Shift every local group of up to three transitions ±30ms at four frame rates.
 // M→F bridge re-presses use the same 60ms guard as the existing Moon tests.
-for(const level of journeyLevels.filter(l=>['001','002','005'].includes(l.id))){
+for(const level of journeyLevels.filter(l=>['001','002','005','006'].includes(l.id))){
  const spans=[];for(const c of level.route)for(const [dt,fast]of chunks(c)){if(spans.at(-1)?.fast===fast)spans.at(-1).dt+=dt;else spans.push({dt,fast});}
  const guards={};let t=0;
  for(let i=0;i<spans.length-1;i++){t+=spans[i].dt;const hop=Math.round(t/PERIOD);if(Math.abs(t-hop*PERIOD)<1e-8&&(level.route[hop-1]==='M'||(level.id==='005'&&hop===30))&&level.route[hop]==='F'){guards[i]=.06;guards[i-1]=.06;}}
