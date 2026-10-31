@@ -1,0 +1,211 @@
+:root{
+  --night:#0c1228;--panel:#192340;--ink:#f5f4ff;--muted:#aab5d0;
+  --moon:#c9bdf4;--safe:#92efd5;--danger:#ffabbc;--gold:#ffdb83;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%}
+body{margin:0;background:radial-gradient(ellipse at 50% 70%,#1a254a 0%,#0c1228 65%);
+  color:var(--ink);font-family:"Yu Gothic UI","Hiragino Kaku Gothic ProN",system-ui,sans-serif}
+main{height:100svh;min-height:560px;width:min(100%,460px);margin:auto;
+  display:flex;flex-direction:column;gap:8px;
+  padding:9px 12px max(10px,env(safe-area-inset-bottom))}
+button{font:inherit;cursor:pointer;color:var(--ink);
+  background:var(--panel);border:1px solid #4f5d82;border-radius:12px}
+button[hidden],[hidden]{display:none!important}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.topbar{height:30px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  padding:0 2px}
+.brand{font-size:10px;font-weight:800;letter-spacing:.2em;color:#d8d6ff}
+.lab{font-weight:500;letter-spacing:.12em;color:#8c97b9}
+.utilities{display:flex;align-items:center;gap:8px}
+.icon-button{width:32px;height:30px;min-height:30px;padding:0;display:grid;place-items:center;
+  font-size:15px;background:transparent;border-color:#394463;color:#c3cbe9}
+.stage-tabs{display:flex;gap:6px;flex-shrink:0}
+.stage-tabs button{flex:1;min-width:0;min-height:39px;padding:6px 8px;font-size:13px;font-weight:650;
+  color:#bbc4e2;background:#121a33}
+.stage-tabs button[aria-pressed=true]{border-color:#c9bdf4;background:#34345d;color:#fff}
+.stage-number{font-size:11px;letter-spacing:.06em;color:#a59ed3;margin-right:5px}
+.world{position:relative;flex:1;min-height:225px;overflow:hidden;
+  border-radius:16px;border:1px solid #344160;
+  background:linear-gradient(180deg,#111c36 0%,#172540 72%,#10192f 100%)}
+canvas{width:100%;height:100%;display:block;object-fit:contain;touch-action:none}
+.hud{position:absolute;z-index:2;top:7px;left:10px;right:10px;
+  display:flex;align-items:center;gap:8px;pointer-events:none;
+  color:#e3e9ff;font-size:11px;font-weight:650}
+.hud span{background:rgba(14,24,48,.75);border-radius:7px;padding:5px 7px;
+  box-shadow:0 1px 10px #070d2020}
+.hud #progress{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:.045em}
+.hud #checkpoint{color:var(--safe)}
+.hud #bonus{color:var(--gold)}
+.hud #pause{margin-left:auto;pointer-events:auto;background:rgba(14,24,48,.7);
+  border:1px solid #4b5a7e;font-weight:800;font-size:13px}
+#panel{position:absolute;z-index:3;left:11px;right:11px;top:48px;bottom:auto;
+  max-height:calc(100% - 56px);overflow-y:auto;
+  background:rgba(17,24,46,.95);border:1px solid #6b719c;
+  border-radius:14px;padding:11px 13px 12px;text-align:left;
+  box-shadow:0 9px 25px rgba(2,7,21,.2)}
+#panel[hidden],#demo[hidden]{display:none!important}
+#eyebrow{font-size:9px;font-weight:800;letter-spacing:.16em;color:#aca4e2;margin:0}
+h2{font-size:17px;font-weight:750;line-height:1.3;margin:3px 0}
+#description{font-size:12px;line-height:1.4;margin:4px 0 8px;color:#d2d8f2}
+#description:empty{display:none}
+#demo{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin:4px 0 8px;font-size:11px}
+#bridge-demo{color:var(--safe);border-bottom:2px solid var(--safe);padding-bottom:4px;
+  font-weight:700;white-space:nowrap}
+#bridge-demo.fast{color:var(--danger);border-bottom:2px dashed var(--danger)}
+#demo small{font-size:10px;color:#9caccd;text-align:right}
+.panel-actions{display:flex;align-items:center;gap:9px}
+#action{flex:1;min-height:40px;background:var(--moon);color:#13162c;
+  font-size:13px;font-weight:800;border-color:var(--moon)}
+#restart{padding:0 12px;min-height:40px;flex-shrink:0;background:transparent;
+  color:#cbd0ed;border-color:#586586;font-size:12px}
+#hold{flex-shrink:0;min-height:66px;touch-action:none;user-select:none;-webkit-user-select:none;
+  border:1px solid #e0d7fa;background:linear-gradient(180deg,#d6c9ff,#b7aaed);
+  color:#13172c;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 0 #776aaf}
+#hold strong{font-weight:850;letter-spacing:.11em;font-size:19px}
+#hold.active{background:linear-gradient(180deg,#ffe9ad,#ffd27b);border-color:#ffedba;
+  box-shadow:0 3px 0 #a47a33}
+#resume{flex-shrink:0;min-height:42px;border:1px solid #c0fce3;
+  background:var(--safe);color:#102239;font-weight:800;font-size:13px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-height:650px){
+ main{gap:6px;padding-top:5px;padding-bottom:max(6px,env(safe-area-inset-bottom))}
+ .topbar{height:26px}.stage-tabs button{min-height:36px}
+ #panel{top:42px;padding:9px 11px}
+ #hold{min-height:62px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Journey: the route bar is the stage select, progress and result record at once,
+   so the screen needs no stage names, HOP counter or GOAL caption. */
+[data-journey] main{gap:10px}
+[data-journey] button{-webkit-tap-highlight-color:transparent}
+.journey-bar{height:40px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.journey-bar .icon-button{width:36px;height:36px;border-radius:50%;background:rgba(20,28,56,.6);border-color:#3d4870}
+#pause:disabled{opacity:.35;cursor:default}
+.route{flex:1;min-width:0;display:flex;align-items:center;gap:0}
+.route button.stop,.route button.stop[aria-pressed]{flex:0 0 30px;height:36px;min-height:36px;padding:0;border:0;background:none;display:grid;place-items:center}
+.route .stop::before{content:"";width:9px;height:9px;border-radius:50%;background:#2c3660;
+  box-shadow:inset 0 0 0 1.5px #7d88b8;transition:transform .2s}
+.route .stop.clear::before{background:var(--gold);box-shadow:none}
+.route .stop.full::before{background:var(--gold);box-shadow:0 0 0 2.5px #0c1228,0 0 0 4px var(--gold)}
+.route .stop[aria-pressed=true]::before{transform:scale(1.55);background:var(--moon);
+  box-shadow:0 0 10px 2px #b9a8ff99}
+.route .stop[aria-pressed=true].clear::before{background:var(--gold)}
+.route .leg{flex:1;min-width:6px;height:2px;border-radius:1px;background:#333e68;position:relative}
+.route .leg b{position:absolute;inset:0 auto 0 0;width:calc(var(--p,0)*100%);border-radius:1px;
+  background:linear-gradient(90deg,#b9a8ff,#f4f0ff)}
+.route .leg.done b{width:100%;background:var(--gold)}
+.route .leg.here b::after{content:"";position:absolute;right:-4px;top:-3px;width:8px;height:8px;border-radius:50%;
+  background:#fff;box-shadow:0 0 8px 2px #d7ccff}
+.route .goal{flex:0 0 18px;height:18px;border-radius:50%;margin-left:3px;
+  background:radial-gradient(circle at 65% 40%,#0c1228 0 46%,transparent 47%),#e8dcff;opacity:.55}
+.route .goal.clear{background:#ffe7a6;opacity:1;box-shadow:0 0 10px #ffd87988}
+[data-journey] .hud{top:10px;left:12px;gap:6px}
+[data-journey] .hud span{width:26px;height:26px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:14px}
+[data-journey] .hud #checkpoint.used{opacity:.55}
+[data-journey] .hud #bonus::before{content:"";width:5px;height:15px;border-radius:3px;
+  background:linear-gradient(#f4f0e7 0 30%,transparent 30% 35%,#e5becd 35% 65%,transparent 65% 70%,#a9d8ba 70%)}
+[data-journey] #panel{top:14px;left:14px;right:14px;padding:16px 16px 14px;text-align:center;
+  background:linear-gradient(180deg,rgba(32,38,78,.94),rgba(18,24,50,.94));
+  border:1px solid #8a83c8;border-radius:18px;
+  box-shadow:0 0 0 1px #2a2f5c inset,0 10px 30px rgba(2,7,21,.45),0 0 24px #9b8cf022}
+[data-journey] #help{position:absolute;top:8px;right:8px;width:28px;height:28px;min-height:28px;
+  border-radius:50%;font-size:13px;border-color:#4a5582;color:#aab3d8}
+[data-journey] h2{font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  font-size:22px;font-weight:700;letter-spacing:.08em;margin:2px 26px 0;color:#fbf7ff;
+  text-shadow:0 0 14px #b9a8ff66}
+[data-journey] #description{font-size:12.5px;color:#c8cde8;margin:6px 0 12px}
+[data-journey] #description:empty{display:block;height:4px;margin:0 0 8px}
+[data-journey] #action{min-height:44px;border-radius:22px;font-size:14px;letter-spacing:.08em;
+  background:linear-gradient(180deg,#e2d8ff,#bfb1f3);box-shadow:0 0 16px #b9a8ff55}
+[data-journey] #restart{min-height:44px;border-radius:22px}
+[data-journey] #resume{border-radius:22px}
+/* The whole board is the button; this small chip only mirrors FAST/SLOW, low in the void under the lane. */
+[data-journey] .world{border:0;border-radius:18px;background:#0a1230}
+[data-journey] #hold{position:absolute;z-index:2;right:12px;bottom:12px;min-height:0;width:52px;height:30px;
+  border-radius:15px;padding:0;background:rgba(20,26,60,.55);color:#b9b2e8;border:1px solid #4a4f86;box-shadow:none}
+[data-journey] #hold.active{background:rgba(255,216,121,.85);color:#2a1d08;border-color:#fff0c2;box-shadow:0 0 14px #ffd87966}
+[data-journey] .chevrons{justify-content:center}
+[data-journey] .chevrons i{width:7px;height:7px;border-width:2px 2px 0 0}
+#touch-cue{position:absolute;z-index:2;left:0;right:0;bottom:16%;margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;
+  pointer-events:none;color:#efeaff;font-size:14px;font-weight:700;letter-spacing:.06em;text-shadow:0 0 10px #7d6be0;
+  opacity:0;transition:opacity .5s}
+#touch-cue b:last-child{font-size:12px;font-weight:600;color:#c8c2ee}
+#touch-cue.shown{opacity:1;animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{50%{transform:translateY(-3px)}}
+.chevrons{display:flex;gap:2px}
+.chevrons i{width:9px;height:9px;border:solid currentColor;border-width:2.5px 2.5px 0 0;transform:rotate(45deg);opacity:.35}
+#hold.active .chevrons i{opacity:1;animation:dash .5s linear infinite}
+#hold.active .chevrons i:nth-child(2){animation-delay:.1s}
+#hold.active .chevrons i:nth-child(3){animation-delay:.2s}
+@keyframes dash{0%,100%{opacity:.35}50%{opacity:1}}
+.ready-invite #hold:not(.active){animation:invite 1.6s ease-in-out infinite}
+@keyframes invite{50%{box-shadow:0 0 16px #b9a8ffaa;border-color:#b9a8ff}}
+@media(max-height:650px){[data-journey] #panel{padding:12px 14px 12px}}
+
+/* v0.4: cards sit low, in the night under the lane, where the thumb already is. */
+[data-journey] #panel{top:auto;bottom:12px;max-height:calc(36% - 16px)}
+[data-journey] #home{position:absolute;top:8px;left:8px;width:28px;height:28px;min-height:28px;border-radius:50%;font-size:14px;border-color:#4a5582;color:#aab3d8}
+[data-journey] .panel-tools{position:absolute;top:8px;right:8px;display:flex;gap:6px}
+[data-journey] .panel-tools #help{position:static}
+.lang-button{width:auto!important;min-width:28px;padding:0 8px!important;border-radius:14px!important;font-size:11px!important;font-weight:700;letter-spacing:.04em}
+[data-journey] .panel-tools .icon-button{height:28px;min-height:28px}
+[data-journey] h2{margin:2px 64px 0}
+/* Stage 001 practice: bigger, and it lights up gold while the finger is down. */
+#touch-cue.drill{bottom:auto;top:12%;font-size:18px}
+#touch-cue.drill b:last-child{font-size:13px}
+#touch-cue.drill.fast b:first-child{color:#ffe9a8;text-shadow:0 0 14px #ffd879}
+.route .stop.dango::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:#f6b8c8;
+  transform:translate(9px,9px);box-shadow:0 0 6px #f6b8c8}
+.route .stop{position:relative}
+/* Title screen */
+#title-screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;
+  width:min(100%,460px);margin:auto;background:#0a1230;overflow:hidden}
+#title-art{position:absolute;inset:0;width:100%;height:100%}
+.title-logo{position:relative;margin-top:max(9svh,40px);display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.title-logo .logo{font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",Georgia,serif;font-size:clamp(40px,13vw,58px);
+  font-weight:700;letter-spacing:.06em;color:#fff4d6;text-shadow:0 0 18px #ffd87988,0 0 2px #fff}
+.title-logo .logo-sub{font-family:Georgia,"Yu Mincho",serif;font-size:15px;letter-spacing:.18em;color:#e4dcff}
+.title-actions{position:absolute;left:0;right:0;bottom:max(15svh,96px);display:flex;flex-direction:column;align-items:center;gap:12px}
+#title-start{width:min(72%,280px);min-height:56px;border-radius:28px;font-family:Georgia,"Yu Mincho",serif;font-size:22px;letter-spacing:.24em;
+  color:#fff8e6;background:linear-gradient(180deg,#3a3a86,#232663);border:1.5px solid #ffe2a0;box-shadow:0 0 0 4px #161a46,0 0 26px #ffd87955}
+#title-select{width:min(60%,230px);min-height:42px;border-radius:21px;font-size:13px;letter-spacing:.2em;color:#e4dcff;
+  background:rgba(20,26,60,.7);border:1px solid #8a83c8}
+.title-tools{position:absolute;right:16px;bottom:max(4svh,18px);display:flex;gap:10px}
+.title-tools .icon-button{width:40px;height:40px;border-radius:50%;background:rgba(20,26,60,.7);border-color:#8a83c8;color:#e4dcff}
+.title-tools .lang-button{height:40px}
+/* Card tools ride a thin top row so the title gets the full width. */
+[data-journey] #panel{padding-top:38px}
+[data-journey] h2{margin:0 4px;font-size:21px}
+
+/* v0.5: a real FAST button again, centred in the night under the lane; the board still works too. */
+[data-journey] #hold{left:50%;right:auto;bottom:max(16px,3%);transform:translateX(-50%);width:92px;height:92px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  background:radial-gradient(circle at 50% 35%,rgba(70,66,140,.85),rgba(22,26,66,.9) 70%);color:#efeaff;
+  border:2px solid #a99cf0;box-shadow:0 0 0 5px rgba(20,24,60,.6),0 0 24px #9b8cf055}
+[data-journey] #hold .bunny{width:24px;height:24px;fill:currentColor;margin-bottom:1px}
+[data-journey] #hold strong{font-size:16px;font-weight:800;letter-spacing:.14em;line-height:1.1}
+[data-journey] #hold small{font-size:9px;letter-spacing:.24em;opacity:.8}
+[data-journey] #hold.active{background:radial-gradient(circle at 50% 35%,#fff1c4,#ffd27b 75%);color:#2a1d08;border-color:#fff0c2;
+  box-shadow:0 0 0 5px rgba(58,44,18,.6),0 0 34px #ffd879aa;transform:translateX(-50%) scale(.95)}
+#touch-cue:not(.drill){bottom:calc(max(16px,3%) + 104px)}
+/* Six stops still fit beside Ⅱ and ♪ at 320px. */
+.route button.stop,.route button.stop[aria-pressed]{flex-basis:26px}
+.route .leg{min-width:4px}
+
+/* Title key art (Michiru watching the Earth from the Moon); the code-drawn scene stays as fallback. */
+#title-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 60%;opacity:0;transition:opacity .4s}
+#title-screen.has-art #title-img{opacity:1}
+#title-screen.has-art #title-art{visibility:hidden}
+#title-screen::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(8,12,36,.55) 0%,rgba(8,12,36,0) 30%,rgba(8,12,36,0) 62%,rgba(8,12,36,.7) 100%)}
+#title-screen>.title-logo,#title-screen>.title-actions,#title-screen>.title-tools{z-index:1}
+/* With key art, keep Michiru's face clear: buttons sit low, tools move to the top corner. */
+#title-screen.has-art .title-actions{bottom:max(4svh,22px);gap:10px}
+#title-screen.has-art #title-start{min-height:52px}
+#title-screen.has-art .title-tools{top:max(2svh,12px);bottom:auto}

@@ -1,3 +1,5 @@
+> 2026-10-31 / Issue #13: 以下は旧キャンペーン作業の記録。現在は `integration/moon-journey-v01` → `claude/polish-mobile` のDraft PRで統合。本編入口は `moon-journey.html`、5面の採用データと検証・設計との差分は [MOON_JOURNEY_QA.md](MOON_JOURNEY_QA.md)。担当分担・統合順は現Issueを優先し、mainマージ・公開・LAN起動は行わない。
+
 # Codex Implementation Task · HOPSCROLL v0.2 (logic / level QA)
 
 You own `src/core.mjs`, `tests/*`, and docs about gameplay QA. **Do not edit** `src/game.mjs`, `style.css`, `index.html` unless the integration owner explicitly approves. Work in a separate branch `codex/core-levels`, based on the integration branch. Inspect current HEAD first.

@@ -3,7 +3,7 @@ on:
   push:
     branches: [main, codex/safe-first-hop]
   pull_request:
-    branches: [main, claude/polish-mobile]
+    branches: [main, claude/polish-mobile, codex/moon-bridge-paths, claude/moon-journey-ui]
   workflow_dispatch:
 
 permissions:
@@ -12,7 +12,7 @@ permissions:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,16 +21,28 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Core and STAR RUN tests
-        run: node --test tests/core.test.mjs tests/star-run.test.mjs
+      - name: Campaign, STAR RUN and Moon tests
+        run: node --test tests/core.test.mjs tests/star-run.test.mjs tests/moon.test.mjs tests/moon-journey.test.mjs
       - name: Check script syntax
         run: |
           node --check src/core.mjs
           node --check src/game.mjs
           node --check src/star-run-core.mjs
           node --check src/star-run.mjs
+          node --check src/moon-core.mjs
+          node --check src/moon-levels.mjs
+          node --check src/moon-lab.mjs
+          node --check src/moon-sky.mjs
+          node --check src/moon-i18n.mjs
+          node --check src/moon-audio.mjs
+          node --check src/michiru.mjs
+          node --check src/moon-journey-levels.mjs
       - name: Build itch single HTML
         run: python scripts/build.py
+      - name: Build Moon Journey offline ZIP
+        run: |
+          python scripts/build_moon_journey.py
+          python -m zipfile -e itch-dist/HOPSCROLL-Moon-Journey-v0.5.zip itch-dist/moon-journey-verified
       - name: Validate distribution content
         run: |
           python - <<'PY'
@@ -48,6 +60,22 @@ jobs:
         run: npm install --no-save --package-lock=false playwright-core@1.56.1
       - name: Browser smoke test (actual itch HTML)
         run: node tests/ui-smoke.mjs
+      - name: Moon prototype browser smoke (local HTTP)
+        run: |
+          python -m http.server 8000 --bind 127.0.0.1 > /tmp/moon-http.log 2>&1 &
+          node tests/moon-browser.mjs
+          node tests/moon-audio-browser.mjs
+          JOURNEY_URL=http://127.0.0.1:8000/itch-dist/moon-journey-verified/index.html node tests/moon-journey-browser.mjs
+      - name: Upload Moon QA captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moon-lab-browser-smoke
+          path: |
+            docs/moon-lab-screenshots/*.png
+            docs/moon-journey-screenshots/*.png
+            docs/moon-audio-metrics.json
+          if-no-files-found: ignore
       - name: Upload browser QA captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,5 +86,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: hopscroll-itch
-          path: itch-dist/index.html
+          path: |
+            itch-dist/index.html
+            itch-dist/HOPSCROLL-Moon-Journey-v0.5.zip
           if-no-files-found: error
