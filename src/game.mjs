@@ -2,7 +2,7 @@ import {PERIOD,SLOW_SPEED,FAST_SPEED,levels,isSafe,inGoal,predictLanding,createS
 
 const $=id=>document.getElementById(id);
 const shell=$('shell'),canvas=$('stage'),ctx=canvas.getContext('2d');
-// Small star-rabbit parked on the left + zoomed-out world = more lookahead in the same 360x640 portrait frame.
+// Small moon-rabbit girl parked on the left + zoomed-out world = more lookahead in the same 360x640 portrait frame.
 const CW=360,CH=640,HERO_X=52,FLOOR=385,WORLD_SCALE=.74,HOP_H=92,RABBIT_SCALE=.5;
 const overlay=$('overlay'),btn=$('accelerate'),speedIndicator=$('speed-indicator'),tip=$('tip');
 const GOAL_KEY='hopscroll-unlocked-v01',MUTE_KEY='hopscroll-muted';
@@ -104,11 +104,11 @@ function showModal({tag,title,message,button,onAction,footer,mood='play'}){
 function runModal(){const action=modalAction;modalAction=null;if(!action)return;tone(520,{type:'sine'});startBgm();action();}
 $('modal-action').addEventListener('click',runModal);
 function intro(){
-  showModal({tag:'SLAPJAM #2 · THEME: SPEED',title:'HOP<span>SCROLL</span>',message:'① The star-rabbit hops all by itself.<br/>② Try <em>HOLD</em> and then <em>RELEASE</em>.<br/>③ No gaps yet! First enjoy the speed.',button:'LET\'S HOP →',footer:'Tap · or press SPACE',onAction:()=>reset(0,true)});
+  showModal({tag:'SLAPJAM #2 · THEME: SPEED',title:'HOP<span>SCROLL</span>',message:'① Michiru hops all by itself.<br/>② Try <em>HOLD</em> and then <em>RELEASE</em>.<br/>③ No gaps yet! First enjoy the speed.',button:'LET\'S HOP →',footer:'Tap · or press SPACE',onAction:()=>reset(0,true)});
 }
 function pause(){
   if(!playing||state.status!=='playing')return;
-  showModal({tag:`STAGE ${pad(levelIndex+1)} · PAUSED`,title:'PAUSED',message:'Take a breath.<br/>The star-rabbit waits for you.',button:'RESUME ▶',footer:'HOLD = FAST · RELEASE = SLOW',
+  showModal({tag:`STAGE ${pad(levelIndex+1)} · PAUSED`,title:'PAUSED',message:'Take a breath.<br/>Michiru waits for you.',button:'RESUME ▶',footer:'HOLD = FAST · RELEASE = SLOW',
     onAction:()=>{playing=true;overlay.classList.add('hidden');last=performance.now();}});
 }
 // Short in-world beat before the result card, so the landing (or the fall) is actually seen.
@@ -229,7 +229,7 @@ function starBurst(i){
   showToast(`★ ${state.starCount} / ${l.stars.length}`,.6);
 }
 function dust(){if(reduceMotion)return;for(let n=0;n<7;n++)spawn({kind:'mote',x:state.x+toWorld((n-3)*4),y:FLOOR-2,vx:(n-3)*26,vy:-22-Math.random()*22,g:50,life:.4,size:2,color:n%2?'#dff4ff':'#9fd8ff'});}
-// The moment of switching: FAST kicks a ring of stardust off the tail, SLOW lets it puff out and fade.
+// The moment of switching: FAST kicks a ring of stardust off the cloak, SLOW lets it puff out and fade.
 function speedBurst(fast){
   const y=FLOOR-4-Math.sin(Math.PI*state.phase/PERIOD)*HOP_H-12,x=state.x+toWorld(-11);
   spawn({kind:'ring',x,y,life:fast?.3:.45,color:fast?'#bdf1ff':'#e6dcff',grow:fast?40:22});
@@ -248,7 +248,7 @@ function stepFx(dt){
   if(reduceMotion)return;
   // Shooting stars only while the world is rushing.
   if(flow>.35&&Math.random()<dt*3.2*flow)meteors.push({x:150+Math.random()*260,y:20+Math.random()*190,vx:-560-Math.random()*240,vy:150+Math.random()*80,life:.55,age:0,len:.05+Math.random()*.04});
-  // Stardust shed by the star tail: a thin wisp when SLOW, a long glittering stream when FAST.
+  // Stardust shed by the cloak: a thin wisp when SLOW, a long glittering stream when FAST.
   if(playing&&state.status==='playing'&&Math.random()<dt*(5+55*flow)){
     const y=FLOOR-4-Math.sin(Math.PI*state.phase/PERIOD)*HOP_H-12;
     spawn({kind:'mote',x:state.x+toWorld(-12),y:y+(Math.random()-.5)*6,vx:-10-30*flow,vy:(Math.random()-.5)*16,g:-6,life:.3+.75*flow,size:1.2+Math.random()*1.6,color:Math.random()<.5?'#fff3c0':'#cfefff'});
@@ -365,25 +365,99 @@ function drawForecast(level,camera){
   ctx.font='900 11px system-ui';ctx.textAlign='center';const tw=ctx.measureText(label).width+12;
   rounded(sx-tw/2,FLOOR-58,tw,17,8,'#0b1d2ecc');ctx.fillStyle=color;ctx.fillText(label,sx,FLOOR-45.5);
 }
-// Star-rabbit, side view facing right, origin at the feet. Shared by the game canvas and the card icon.
-// earA = ear sweep in radians (negative = swept back), mood = 'play' | 'happy' | 'dizzy'.
-function rabbitShape(g,{earA=-.25,mood='play',glow=10}={}){
-  const cream='#fff8ec',shade='#efe3d0',pink='#f3b3b6';
-  g.save();g.shadowColor='#a9dcff';g.shadowBlur=glow;
-  for(const [px,py,da,col] of [[3,-57,-.28,shade],[11,-59,0,cream]]){
-    g.save();g.translate(px,py);g.rotate(earA+da);rounded(-7,-46,14,48,7,col,g);g.shadowBlur=0;rounded(-3.6,-40,7.2,33,3.6,pink,g);g.restore();
-  }
-  g.fillStyle=cream;g.beginPath();g.ellipse(-2,-21,21,18,0,0,Math.PI*2);g.fill();
-  g.beginPath();g.arc(11,-43,18,0,Math.PI*2);g.fill();
-  g.beginPath();g.ellipse(8,-3,8,4,0,0,Math.PI*2);g.ellipse(-11,-4,7,4,0,0,Math.PI*2);g.fill();
+// Michiru: hand-drawn right profile, foot origin and caller transforms unchanged.
+// Upright bounds are approximately 120 units / 60 CSS px including ears.
+function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0,crouch=0}={}){
+  const f=Math.max(0,Math.min(1,flow)),c=Math.max(0,Math.min(1,crouch)),u=9*(1-f)*(1-c);
+  const white='#f5f1fa',hair='#e5e0f2',shade='#aba1d5',navy='#243052',skin='#ffdfce',pink='#f3acbc';
+  g.save();g.lineJoin='round';g.lineCap='round';
+  const path=(d,c,edge=true)=>{const p=new Path2D(d);g.fillStyle=c;
+    if(edge){g.strokeStyle='#d8eaff';g.lineWidth=1.2;g.shadowColor='#d8eaff';g.shadowBlur=Math.min(glow,1.5);g.stroke(p);}
+    g.shadowBlur=0;g.fill(p);};
+  const line=(d,c=shade,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.stroke(new Path2D(d));};
+  const oval=(x,y,rx,ry,c)=>{g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=c;g.fill();};
+  // Bare knees and separate boots: the rear leg kicks back as speed rises, the front knee tucks up while SLOW,
+  // and both fold short (wider, lower) in the landing crouch.
+  g.save();g.scale(1+.18*c,1-.42*c);
+  path(`M -10 -31 L 0 -29 L ${-5-24*f} ${-9-10*f} L ${-14-24*f} ${-10-10*f} Z`,skin);
+  path(`M ${-14-24*f} ${-13-10*f} L ${-5-24*f} ${-11-10*f} L ${-2-24*f} ${-3-10*f} Q ${-8-24*f} ${1-10*f} ${-17-24*f} ${-3-10*f} Z`,white);
+  path(`M 3 -30 L 13 -31 L ${13+9*f-u*.6} ${-10-u} L ${5+9*f-u*.6} ${-8-u} Z`,skin);
+  path(`M ${4+9*f-u*.6} ${-12-u} L ${14+9*f-u*.6} ${-13-u} L ${16+9*f-u*.6} ${-6-u} Q ${24+9*f-u*.6} ${-4-u} ${21+9*f-u*.6} ${-u} L ${4+9*f-u*.6} ${-u} Z`,white);
+  line(`M ${4+9*f-u*.6} ${-11-u} L ${14+9*f-u*.6} ${-12-u}`,shade,3);
+  line(`M ${-14-24*f} ${-12-10*f} L ${-5-24*f} ${-10-10*f}`,shade,3);
   g.restore();
-  // Star tail.
-  g.save();g.shadowColor='#ffd84a';g.shadowBlur=glow*.9;drawStar(-22,-24,9,4.2,'#ffe27a',-.2,g);g.restore();
-  g.fillStyle='#3b2622';g.strokeStyle='#3b2622';g.lineWidth=2.4;g.lineCap='round';
-  if(mood==='happy'){g.beginPath();g.arc(18,-44,3.4,Math.PI*1.1,Math.PI*1.9);g.stroke();}
-  else if(mood==='dizzy'){g.beginPath();g.moveTo(15.5,-47.5);g.lineTo(20.5,-42.5);g.moveTo(20.5,-47.5);g.lineTo(15.5,-42.5);g.stroke();}
-  else{g.beginPath();g.ellipse(18,-45,3.3,4.2,0,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(19.2,-46.6,1.3,0,Math.PI*2);g.fill();}
-  g.fillStyle=pink;g.beginPath();g.ellipse(21,-37,4,2.3,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(28.4,-42,1.8,0,Math.PI*2);g.fill();
+  // Lean the torso forward about the hips, independently of the existing whole-body lean.
+  g.translate(0,12.6*c-30);g.rotate(.24*f);g.translate(0,30);
+  path(`M -8 -64 Q -20 -52 ${-35-17*f} ${-25-28*f} Q -20 -15 15 -25 L 15 -58 Z`,navy);
+  path(`M -8 -63 Q -24 -54 ${-37-18*f} ${-30-27*f} Q -29 -20 -14 -26 Q -2 -15 19 -29 L 12 -59 Z`,white);
+  path('M -7 -58 L 12 -58 L 15 -27 Q 4 -20 -4 -30 Z',shade,false);
+  path('M -3 -58 L 8 -58 L 10 -28 Q 3 -23 -2 -30 Z',white,false);
+  path(`M -8 -44 Q -27 ${-38-15*f} ${-43-17*f} ${-39-17*f} L ${-35-20*f} ${-34-19*f} L -7 -41 Z`,'#e6bf73',false);
+  path('M -10 -46 L 13 -46 L 14 -42 L -10 -42 Z','#e6bf73',false);
+  // Broad rear sleeve, with a visible navy opening and lilac fold.
+  path(`M -7 -62 Q -20 -63 ${-38-21*f} ${-45-15*f} Q ${-42-17*f} ${-22-30*f} -12 -32 L 6 -53 Z`,hair);
+  path(`M ${-38-21*f} ${-45-15*f} Q ${-36-17*f} ${-25-28*f} -17 -34 Q -29 -37 ${-38-21*f} ${-45-15*f} Z`,navy,false);
+  line(`M -9 -57 Q -22 -49 ${-31-16*f} ${-42-12*f}`);
+  path('M -9 -66 L 12 -66 L 17 -56 L 1 -51 L -13 -57 Z',navy);
+  path('M -8 -64 L 2 -55 L 0 -48 L -16 -58 Z',hair);
+  path('M 11 -64 L 2 -55 L 9 -50 L 17 -58 Z',white);
+  // Bob silhouette with soft rounded tips, never a round white animal head.
+  path(`M -22 -65 Q -29 -81 -19 -91 Q -5 -103 14 -94 Q 26 -90 26 -77 Q 24 -66 20 -64 L 8 -59 L -13 -60 Q -18 -60 -22 -63 Q ${-29-13*f} -63 ${-27-13*f} -67 Q ${-26-15*f} -70 ${-29-16*f} -73 Q -26 -77 -22 -75 Z`,hair);
+  // Far left ear: rising base, pronounced corner, then a broad downward tip.
+  g.save();g.translate(7,-94);g.rotate(earA*.22-.65*f);
+  path('M -4 3 Q 3 -15 18 -15 Q 24 -14 25 -8 L 30 4 Q 30 9 23 6 L 15 -4 L 15 -9 Q 6 -7 3 4 Z',shade);
+  path('M 0 0 Q 8 -12 18 -13 L 17 -8 Q 8 -6 4 3 Z',pink,false);
+  path('M 18 -14 Q 25 -14 25 -7 L 30 3 Q 31 10 23 5 L 16 -5 Z',white);
+  g.restore();
+  // Near right ear stays unbroken, sweeping far behind the head at FAST.
+  g.save();g.translate(-13,-93);g.rotate(earA*(.75+.35*f)-.3*f);
+  path('M -5 4 Q -12 -12 -5 -28 Q -3 -32 0 -27 Q 10 -11 5 4 Z',white);
+  path('M -2 0 Q -7 -13 -3 -23 Q 5 -11 2 1 Z',pink,false);g.restore();
+  // Human cheek/chin contour: no projecting nose or muzzle.
+  path('M -7 -87 Q 11 -94 22 -82 L 23 -72 Q 24 -62 14 -59 Q 3 -57 -6 -65 Z',skin,false);
+  oval(-6,-70,4,5,skin);
+  // Crown, long bangs, and the cheek-framing side lock.
+  path('M -24 -76 Q -26 -95 -8 -98 Q 16 -102 25 -83 L 25 -76 L 20 -79 L 16 -88 Q 17 -80 13 -75 Q 6 -79 3 -89 Q 2 -78 -5 -74 L -7 -63 Q -12 -60 -16 -61 Q -21 -63 -20 -67 Q -24 -67 -24 -71 Z',hair);
+  path('M -18 -87 Q -20 -73 -15 -65 L -10 -66 L -10 -73 Q -13 -77 -10 -91 Z',white,false);
+  line('M -6 -94 Q -12 -83 -8 -73 M 4 -94 Q 5 -82 13 -76 M -20 -79 L -20 -70');
+  // One large profile eye, eyelash and small blush; closed smile / X on cards.
+  if(mood==='happy')line('M 11 -72 Q 16 -79 20 -72','#50342f',2);
+  else if(mood==='dizzy')line('M 11 -78 L 19 -70 M 19 -78 L 11 -70','#50342f',2);
+  else{
+    oval(16,-73.5,4.2,6,'#50342f');oval(17,-71.5,2.6,3.4,'#795044');oval(17.2,-76,1.3,1.8,'#fff8ef');
+    line('M 10 -78 Q 15 -82 20 -78','#50342f',1.4);
+  }
+  oval(17,-65.5,4,1.7,pink);
+  line('M 21 -69 L 22 -68','#bc8279',.7);
+  line(mood==='happy'?'M 16 -62 Q 18 -60 20 -62':'M 18 -62 L 20 -62','#9b665f',.8);
+  // Front sleeve and hand move inward to protect the skewer during FAST.
+  g.save();g.translate(-8*f,13*f);
+  path(`M 8 -56 Q -2 -52 ${-5-12*f} ${-32-14*f} Q 10 -27 26 -46 L 23 -54 Q 17 -50 8 -56 Z`,white);
+  path('M 23 -54 Q 17 -48 23 -43 L 28 -47 Z',navy,false);
+  line('M 7 -51 Q 5 -43 1 -39');
+  line('M 27 -44 L 35 -78','#ac8058',1.7);
+  oval(29,-60,4.8,4.8,pink);oval(31,-69,4.8,4.8,'#fff0e6');oval(33,-78,4.8,4.8,'#fff0e6');
+  path('M 23 -53 Q 28 -57 30 -52 L 28 -46 Q 24 -44 22 -48 Z',skin,false);
+  g.restore();g.restore();
+  g.restore();
+}
+// Sprite Michiru (default): poses cut from the reference sheet by scripts/make_michiru_sprites.py.
+// Same foot-origin, 120-unit frame as michiruShape, which stays as the fallback if the atlas fails to load.
+// Frame: [sx, sy, w, h, anchorX] in atlas px; the anchor sits under the body, the bottom edge is the floor.
+const MICHIRU_FRAMES={front:[3,3,107,218,54],happy:[116,3,107,218,54],profile:[229,3,95,218,46],slow:[330,3,116,202,60],fast:[452,3,142,170,84],land:[600,3,125,156,64]};
+const MICHIRU_UNIT=.6; // 218 atlas px standing = 131 units = 65 CSS px; the SLOW hop pose is ~61 px.
+const michiruAtlas=new Image();let michiruSprites='loading',iconMood='play';
+michiruAtlas.onload=()=>{michiruSprites='ready';drawIcon(iconMood);};
+michiruAtlas.onerror=()=>{michiruSprites='broken';};
+michiruAtlas.src='./assets/img/michiru-sprites.png';
+const useSprites=()=>michiruSprites==='ready'&&!window.__HOPSCROLL_DEBUG__?.forceCanvas;
+function michiruSprite(g,pose,alpha=1){
+  const f=MICHIRU_FRAMES[pose];if(!f||alpha<=.01)return;
+  g.save();g.globalAlpha*=alpha;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+  // A thin moonlit rim keeps the white coat apart from the pale platforms.
+  g.shadowColor='#cfe6ff';g.shadowBlur=4;
+  g.drawImage(michiruAtlas,f[0],f[1],f[2],f[3],-f[4]*MICHIRU_UNIT,-f[3]*MICHIRU_UNIT,f[2]*MICHIRU_UNIT,f[3]*MICHIRU_UNIT);
+  g.restore();
 }
 function drawTrail(camera){
   // Comet tail along the rabbit's real recent path: longer and brighter while FAST.
@@ -410,8 +484,23 @@ function drawRabbit(dt){
   lean+=((reduceMotion?0:.2*flow)-lean)*Math.min(1,dt*12);
   const foot=FLOOR-4-hop+drop;
   if(!drop){ctx.globalAlpha=Math.max(.12,.45-hop/240);ctx.fillStyle='#a9dcff';ctx.beginPath();ctx.ellipse(HERO_X,FLOOR,Math.max(7,15-hop*.07),3,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
-  ctx.save();ctx.translate(HERO_X,foot);ctx.rotate(lean+(drop?Math.min(1.2,drop/120):0));ctx.scale(RABBIT_SCALE*sx,RABBIT_SCALE*sy);
-  rabbitShape(ctx,{earA:ear,mood:ending?.kind==='clear'?'happy':ending?.kind==='fail'?'dizzy':'play'});
+  // Deep "puni" crouch while the feet are near the floor (just before and after each touchdown).
+  const crouch=live&&!reduceMotion?Math.max(0,1-hop/36):0;
+  const mood=ending?.kind==='clear'?'happy':ending?.kind==='fail'?'dizzy':'play';
+  ctx.save();ctx.translate(HERO_X,foot);
+  if(useSprites()){
+    // The FAST pose already leans, so the body tilt is gentler; a little back-tilt while rising, nose-down while falling.
+    const tilt=reduceMotion?0:.35*lean-.06*vy;
+    ctx.rotate(tilt+(drop?Math.min(1.2,drop/120):0));ctx.scale(RABBIT_SCALE*sx,RABBIT_SCALE*sy);
+    if(mood==='happy')michiruSprite(ctx,'happy');
+    else if(mood==='dizzy')michiruSprite(ctx,'land');
+    else if(!live)michiruSprite(ctx,'profile');
+    // Hard pose cuts read crisper than cross-fades between different silhouettes (which ghost).
+    else michiruSprite(ctx,crouch>.4?'land':flow>.5?'fast':'slow');
+  }else{
+    ctx.rotate(lean+(drop?Math.min(1.2,drop/120):0));ctx.scale(RABBIT_SCALE*sx,RABBIT_SCALE*sy);
+    michiruShape(ctx,{earA:ear,flow,mood,crouch});
+  }
   ctx.restore();
 }
 // Rhythm wheel always counts down with the SAME period, independent of speed. Parked under the HUD, away from the rabbit.
@@ -435,15 +524,17 @@ function render(dt){
   if(!reduceMotion&&time-speedFlash<.12){ctx.fillStyle=pressed?'#bdf1ff1c':'#c9c0ff14';ctx.fillRect(0,0,CW,CH);}
   if(ending?.kind==='fail'){ctx.fillStyle='#fb7c8c';ctx.globalAlpha=Math.min(.35,(time-ending.start)*1.2);ctx.fillRect(0,0,CW,CH);ctx.globalAlpha=1;}
 }
-// Card icon: the same star-rabbit, with the mood of the moment.
-// Title/pause cards show the generated key art; result cards draw the canvas rabbit with a matching face.
+// Card icon: the same Michiru, with the mood of the moment.
+// Cards use the same sprite poses as play (front / happy / crouch), or the Canvas drawing as fallback.
 function drawIcon(mood){
+  iconMood=mood;
   const c=$('hero-icon'),art=$('hero-art');if(!c)return;
-  const useArt=mood==='play'&&art&&!art.dataset.broken;art?.classList.toggle('hidden',!useArt);c.classList.toggle('hidden',useArt);
+  const useArt=false;art?.classList.toggle('hidden',!useArt);c.classList.toggle('hidden',useArt);
   if(useArt)return;
   const g=c.getContext('2d'),k=c.width/120;
-  g.setTransform(k,0,0,k,0,0);g.clearRect(0,0,120,120);g.translate(54,104);g.scale(.9,.9);
-  rabbitShape(g,{earA:mood==='happy'?-.05:mood==='dizzy'?-.6:-.25,mood,glow:14});
+  g.setTransform(k,0,0,k,0,0);g.clearRect(0,0,120,120);g.translate(62,111);g.scale(.84,.84);
+  if(useSprites()){g.translate(-4,0);michiruSprite(g,mood==='happy'?'happy':mood==='dizzy'?'land':'front');return;}
+  michiruShape(g,{earA:mood==='happy'?-.05:mood==='dizzy'?-.6:-.25,mood,glow:14});
 }
 let last=performance.now();
 function tick(now){
@@ -466,5 +557,5 @@ function tick(now){
   render(dt);requestAnimationFrame(tick);
 }
 $('hero-art')?.addEventListener('error',e=>{e.currentTarget.dataset.broken='1';drawIcon('play');});
-window.__HOPSCROLL_DEBUG__={levels,createState,advance,isSafe,reset,get state(){return state},get playing(){return playing},get pressed(){return pressed},get bgm(){return bgm&&{paused:bgm.paused,time:bgm.currentTime,mode:bgmMode,broken:bgmBroken}}};
+window.__HOPSCROLL_DEBUG__={levels,createState,advance,isSafe,reset,get state(){return state},get playing(){return playing},get pressed(){return pressed},get sprites(){return michiruSprites},get bgm(){return bgm&&{paused:bgm.paused,time:bgm.currentTime,mode:bgmMode,broken:bgmBroken}}};
 updateMute();intro();updateHud();requestAnimationFrame(tick);
