@@ -40,7 +40,7 @@ function render(){
  $('bonus').hidden=!state.bonus;$('bonus').textContent='● 団子';
  $('hold').classList.toggle('active',input.fast);$('speed').textContent=input.fast?'FAST · RELEASE':'HOLD · FAST';$('bridge-demo').classList.toggle('fast',input.fast);$('bridge-demo').textContent=input.fast?'FAST：橋は透ける':'SLOW：橋は光る';
  const zoom=mode==='checkpoint-ready'?.6:1;
- const next=predictMoon(state,level,input.fast),offset=state.x-65/zoom,sx=x=>(x-offset)*zoom,y=310;
+ const next=predictMoon(state,level,input.fast),offset=state.x-65/zoom,sx=x=>(x-offset)*zoom,y=270;
  $('resume').hidden=mode!=='checkpoint-ready';
  $('mute').textContent=audio.muted?'♪̸':'♪';$('mute').setAttribute('aria-pressed',String(audio.muted));$('mute').setAttribute('aria-label',audio.muted?'効果音をオン':'効果音をミュート');
  setHint(mode==='playing'?(level.id==='003'?'薄藤の橋は、離して着地。NEXTの輪が赤なら危険。':state.x>1250&&state.x<1720?'近い足場か、団子の島か。どちらからでも、その先へ。':'NEXTは今の速度を保った着地点。団子は着地で獲得。'):'NEXTの輪は、今の速度のまま跳んだ着地点。');
