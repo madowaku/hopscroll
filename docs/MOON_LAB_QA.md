@@ -1,4 +1,46 @@
-# 月道の実験：Stage 003 / 004 QA
+# 月道の実験：Stage 003 / 004 QA — v0.2
+
+
+## v0.2 — checkpoint recovery and landing sound
+
+The current user request supersedes PR #9's original checkpoint positions. No terrain or speed/period/collision rule changed.
+
+| Stage | Previous | Current reference capture | Capture X interval | First recovery landing |
+|---|---|---|---|---|
+| 003 | Hop11 / 1655.7 | **Hop9 / 1363.2** | **1345–1385** | SLOW →1445.1, ordinary floor |
+| 004 | Hop13 / 1948.2 | **Hop12 / 1866.3** | **1840–1885** | SLOW →1948.2, ordinary floor |
+
+003 then proceeds FAST →1655.7 (normal), FAST .50s + SLOW .28s →1820.1 (bridge). Hop10 cannot capture the mark a second time. Actual landing X is retained; recovery does not teleport to a nominal reference X. For 004, the old recovery position fell in a gap after one SLOW hop, so moving one hop earlier fixes the same problem.
+
+Recovery immediately shows the restored scene in `checkpoint-ready` mode, phase0, no keys/pointers held. Physics remains frozen until “確認できたら、SLOWで再開”. This is a player-controlled look at NEXT, not a timed intro or automatic countdown. Preview camera is 60% horizontal scale to reveal the ordinary floor and upcoming bridge; play returns to normal scale. First capture, recovery and FULL MOON eligibility remain separate. Bonus collection is restored from the mark; full restart clears it.
+
+### Sound implementation and provenance
+
+`src/moon-audio.mjs` contains original Web Audio oscillator recipes; no asset download or third-party audio/code dependency. [UI SFX](https://uisfx.com/) Soft/Glass descriptions informed the sound direction. [MADO Game Audio Loop](https://github.com/madowaku/mado-game-audio-loop) informed keeping an explicit experiment/evidence boundary; no MGAL candidate selection or audition result is claimed.
+
+| Cue | Synthesis | Approximate end |
+|---|---|---|
+| Normal SLOW | sine 150→95 Hz, rounded 8ms attack | 142ms |
+| Normal FAST | sine 260→175 Hz, lighter/shorter | 112ms |
+| Moon bridge | quiet sine 880 + quieter 1320 Hz | 242ms |
+| Dango | sine 420→560 Hz | 182ms |
+| Goal | 523 / 659 / 784 Hz, offsets 0 / 110 / 220ms | 412ms |
+
+Master gain .32; recipe gain multiplies .12. Subtle four-step detune 0/+8/−6/+4 cents (not semitones). No soundtrack or beat clock. All sound is downstream of real successful physics landings: one `{type:'landing',cue,hop,x}` event per landing, including goal. Priority goal > bonus > bridge > FAST/SLOW; rewards replace the base landing tap. A bridge FAST failure emits no landing cue. Rendering/prediction produces no audio. Goal is one cue with three notes, not three landing events.
+
+AudioContext is created/resumed only from a user gesture. No delayed replay queue: blocked/muted audio events are dropped. Pause, blur, hidden visibility and pagehide stop active voices and suspend audio. Resume/unmute requires a gesture; pending resume cannot override mute/background state. Mute is page-session state. Unsupported/blocked Web Audio leaves the game playable. New cues stop previous voices to bound simultaneous sound even when a test advances virtual frames faster than the audio clock.
+
+### v0.2 verification
+
+- All Campaign / STAR RUN / Moon Node suites pass, including four-frame-rate exact cue sequence comparison (30/60/120/144Hz), original/alternate/solver routes, branch dango and FULL MOON.
+- Both checkpoint capture intervals sampled every 0.5px INCLUDING endpoints: first recovery SLOW hop is normal and safe. For003 the following FAST normal hop and mixed bridge hop also succeed at every sampled position.
+- Reference acquisition occurs once at Hop9 / Hop12. Midair calls emit zero landing cues; each successful hop emits exactly one; bridge FAST failure emits none; dango emits one replacing the base tap.
+- Updated real-browser suite verifies recovery freeze, phase0/input reset, NEXT, visible controls and S/F/M normal→normal→bridge recovery at 360x640, 720x1280, 320x700. 004 dango checkpoint recovery also completes without FULL MOON.
+- `node tests/moon-audio-browser.mjs`: five recipes rendered in Chrome OfflineAudioContext at48kHz; nonzero output, peak below0.04 full-scale and zero tail after0.5s. [Metrics](moon-audio-metrics.json) record results, not perceived loudness. Live normal landings produce nonzero AudioContext analyser samples and exactly two cues for two landings. Mute/retry, unmute, pause/resume, blur and absent AudioContext are exercised in real time.
+- Existing build and campaign browser smoke remain regression checks. CI runs both Moon browser suites.
+- [Recovery 320x700](moon-lab-screenshots/recovery-320.png) / [360x640](moon-lab-screenshots/recovery-360.png) / [720x1280](moon-lab-screenshots/recovery-720.png).
+
+**Not evaluated:** human listening, pleasantness/fatigue, physical speaker output, Android audio unlock/app lifecycle and actual device play. Browser waveform evidence does not establish any of these. Next human audition should compare repeated normal SLOW/FAST taps, bridge bell and dango at a comfortable device volume, then check whether recovery encourages another try.
 
 ## Scope and play
 
@@ -22,7 +64,7 @@ Only 003 (22-hop reference) and 004 (26-hop reference) are implemented here. Cam
 
 1. Stage 003 provisional bridge/normal overlap pairs `775–873 / 857–955`, `1232–1330 / 1314–1494`, `2439–2537 / 2521–2619` are partitioned at 865, 1322, 2529. No coordinate has both support types. The inset gap at the shared boundary is visibly unpainted. All intended landings remain safe; reference minimum safe clearance is 32.5 px.
 2. Stage 004 prose specifies a far island at 1620 but its provisional platform list omits it. Added `1578–1652`; shifted the following platform start from 1650 to 1660 so the islands remain distinct. Both two-hop branches reunite at 1701.9. This follows the written mechanic and the design's explicit allowance to adjust provisional coordinates.
-3. Stage 004 moon-mark capture zone is 1918–1989 inside the ordinary floor. Using the entire 1817–1997 platform incorrectly activated at reference Hop12; the narrowed zone activates at intended Hop13 (1948.2).
+3. v0.1 used Stage004 capture zone 1918–1989 (Hop13). v0.2 deliberately supersedes this with Hop12 / 1840–1885 for a safe SLOW recovery hop; see below.
 4. The exact S/F/M reference is valid, but its immediate re-press after a bridge landing is not tolerant of EARLY input: that necessarily violates the specified SLOW-at-landing rule. A robust alternate input schedule delays two re-presses by 60 ms, with the preceding release also delayed 60 ms to preserve subsequent position. This changes no game rule. Specifically Stage003 uses release 9.140 / re-press 9.420 s and release 16.160 / re-press 16.440 s (instead of 9.080/9.360 and 16.100/16.380). All other transitions use the reference schedule.
 5. Reference hop counts are examples, not enforced lengths. Search found shorter 20-hop routes through each stage and a 21-hop bonus route through 004. HUD therefore counts actual hops without presenting 22/26 as mandatory totals.
 

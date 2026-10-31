@@ -33,11 +33,21 @@ try{
  // Bonus branch through normal UI, then deliberately fall after the checkpoint.
  {
   const page=await open(360,640,1),level=moonLevels[1],route=level.route.slice(0,9)+'FS'+level.route.slice(11);
-  await page.locator('#action').tap();await queue(page,route.slice(0,13));await page.clock.runFor(10160);
+  await page.locator('#action').tap();await queue(page,route.slice(0,12));await page.clock.runFor(9400);
   assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.bonus),true);assert.ok(await page.evaluate(()=>window.__MOON_LAB__.state.checkpoint));
   await page.keyboard.up('Space');await page.clock.runFor(4000);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.status),'dead');await page.locator('#action').tap();
-  assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.jumps),13);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.phase),0);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.bonus),true);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),false);
-  await queue(page,route.slice(13));await page.clock.runFor(10400);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.status),'clear');assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.fullMoon),false);await page.screenshot({path:'docs/moon-lab-screenshots/checkpoint-clear.png'});await page.locator('#restart').tap();assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.bonus),false);await page.close();
+  assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.jumps),12);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.phase),0);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.bonus),true);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),false);
+  assert.equal(await page.evaluate(()=>window.__MOON_LAB__.mode),'checkpoint-ready');await page.clock.runFor(1000);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.phase),0);await page.locator('#resume').tap();
+  await queue(page,route.slice(12));await page.clock.runFor(11200);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.status),'clear');assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.fullMoon),false);await page.screenshot({path:'docs/moon-lab-screenshots/checkpoint-clear.png'});await page.locator('#restart').tap();assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.bonus),false);await page.close();
+ }
+
+ for(const [width,height]of [[360,640],[720,1280],[320,700]]){
+  const page=await open(width,height),level=moonLevels[0];await page.locator('#action').tap();await queue(page,level.route.slice(0,9));await page.clock.runFor(7050);await page.keyboard.up('Space');await page.clock.runFor(2500);
+  assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.status),'dead');await page.locator('#action').tap();
+  assert.equal(await page.evaluate(()=>window.__MOON_LAB__.mode),'checkpoint-ready');assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.jumps),9);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),false);
+  await page.clock.runFor(1500);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.phase),0);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.prediction.safe),true);
+  const box=await page.locator('#hold').boundingBox();assert.ok(box.y+box.height<=height);await page.screenshot({path:`docs/moon-lab-screenshots/recovery-${width}.png`});
+  await page.locator('#resume').tap();await queue(page,'SFM');await page.clock.runFor(2500);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.status),'playing');assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.jumps),12);await page.close();
  }
  assert.deepEqual(errors,[]);console.log('PASS browser: full routes, bridge states, fork, bonus checkpoint recovery, FULL MOON');
 }finally{await browser.close();}

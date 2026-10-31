@@ -77,3 +77,39 @@ for(const fast of [true,false])for(const x of [782.999,783,824.4,857,857.001]){
  const preview=predictMoon(s,bridge,fast);advanceMoon(s,bridge,.1,fast);assert.equal(s.status!=='dead',preview.safe);
 }
 console.log('PASS bounded solver: additional 20/20/21-hop routes at four frame rates; bridge collision boundaries');
+// v0.2: all admitted checkpoint positions afford a safe first released hop.
+for(const level of moonLevels){
+ for(let x=level.checkpoint.a;x<=level.checkpoint.b;x+=.5){
+  const previous=createMoonState(level);previous.checkpoint={x,phase:0,jumps:level.checkpoint.hop,bonus:level.id==='004',collected:[],starCount:0};
+  const s=retryMoon(previous,level);const prediction=predictMoon(s,level,false);assert.equal(prediction.safe,true);
+  const events=advanceMoon(s,level,PERIOD,false);assert.equal(s.status,'playing');assert.equal(events.filter(e=>e.type==='landing').length,1);
+  assert.equal(level.surfaces.find(p=>s.x>=p.a+8&&s.x<=p.b-8).kind,'normal');
+  if(level.id==='003'){
+   advanceMoon(s,level,PERIOD,true);assert.equal(s.status,'playing');
+   assert.equal(level.surfaces.find(p=>s.x>=p.a+8&&s.x<=p.b-8).kind,'normal');
+   const e=[...advanceMoon(s,level,.5,true),...advanceMoon(s,level,.28,false)];assert.equal(s.status,'playing');assert.equal(e.find(e=>e.type==='landing').cue,'bridge');
+  }
+ }
+}
+for(const level of moonLevels){
+ const sequences=[];
+ for(const hz of [30,60,120,144]){
+  const s=createMoonState(level),landings=[];let cpCount=0;
+  for(const c of level.route)for(const [duration,fast] of chunks(c)){
+   let remain=duration;while(remain>1e-10){const dt=Math.min(remain,1/hz);const before=s.jumps;const events=advanceMoon(s,level,dt,fast);remain-=dt;
+    const cues=events.filter(e=>e.type==='landing');assert.equal(cues.length,s.jumps-before);landings.push(...cues.map(e=>({hop:e.hop,cue:e.cue})));cpCount+=events.filter(e=>e==='checkpoint').length;
+    if(events.includes('checkpoint')){assert.equal(s.jumps,level.checkpoint.hop);assert.ok(Math.abs(s.x-level.checkpoint.x)<1e-7);}
+   }
+  }
+  assert.equal(cpCount,1);assert.equal(landings.length,level.route.length);assert.equal(landings.at(-1).cue,'goal');sequences.push(landings);
+  assert.deepEqual(advanceMoon(s,level,1,false),[]);
+ }
+ for(const seq of sequences)assert.deepEqual(seq,sequences[0]);
+}
+{
+ const s=createMoonState(bridge);for(const c of bridge.route.slice(0,4))for(const [dt,f]of chunks(c))advanceMoon(s,bridge,dt,f);
+ const events=[...advanceMoon(s,bridge,.28,false),...advanceMoon(s,bridge,.5,true)];assert.equal(s.failure.reason,'quiet-bridge-fast');assert.equal(events.filter(e=>e.type==='landing').length,0);
+ const b=createMoonState(fork);let cues=[];for(const c of alternate)for(const [dt,f]of chunks(c))cues.push(...advanceMoon(b,fork,dt,f).filter(e=>e.type==='landing'));
+ assert.equal(cues.filter(e=>e.cue==='bonus').length,1);assert.equal(cues.length,26);
+}
+console.log('PASS v0.2: checkpoint envelopes, two normal hops then bridge, single landing cues, cue/frame stability');
