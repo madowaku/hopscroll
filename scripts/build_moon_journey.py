@@ -5,6 +5,7 @@ INCLUDE_BGM=1 opt-in requires a prior license/redistribution review."""
 from pathlib import Path
 import shutil
 import os
+import base64
 from zipfile import ZipFile, ZIP_DEFLATED
 
 base = Path(__file__).resolve().parent.parent
@@ -16,11 +17,17 @@ files = ['moon-lab.css', 'src/moon-sky.mjs', 'src/moon-i18n.mjs', 'src/core.mjs'
          'assets/img/title-earthwatch.jpg', 'assets/img/earth.webp', 'assets/img/moon-bridge.webp', 'assets/img/meteor-bridge.webp']
 BGM = 'assets/bgm/love-it-rabbit.mp3'
 html = (base / 'moon-journey.html').read_text(encoding='utf-8')
-if os.environ.get('INCLUDE_BGM') == '1' and (base / BGM).exists():
-    files.append(BGM)
-    html = html.replace('<body data-journey="true">', f'<body data-journey="true" data-bgm="{BGM}">')
+if os.environ.get('INCLUDE_BGM') == '1':
+    # This local-test option does not expose a standalone .mp3 file in the ZIP.
+    # A data URI can still be decoded; this does NOT establish license clearance.
+    audio_path = base / BGM
+    if not audio_path.is_file():
+        raise SystemExit(f'INCLUDE_BGM=1 but source is missing: {audio_path}')
+    encoded = base64.b64encode(audio_path.read_bytes()).decode('ascii')
+    html = html.replace('<body data-journey="true">', f'<body data-journey="true" data-bgm="data:audio/mpeg;base64,{encoded}">')
+    print('note: BGM embedded for local verification only; confirm redistribution terms before public upload')
 else:
-    print(f'note: third-party BGM not included; explicit INCLUDE_BGM=1 and local file required')
+    print('note: third-party BGM excluded from public-ready build')
 (out / 'index.html').write_text(html, encoding='utf-8')
 for name in files:
     target = out / name
