@@ -20,9 +20,17 @@ try{
   const page=await open(width,height);await page.screenshot({path:`docs/moon-lab-screenshots/intro-${width}.png`});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   const box=await page.locator('#hold').boundingBox();assert.ok(box.y+box.height<=height,'hold outside viewport');
-  const cdp=await page.context().newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+20,y:box.y+20}]});assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),true);assert.match(await page.locator('#bridge-demo').innerText(),/踏めない/);
+  const panelBox=await page.locator('#panel').boundingBox(),worldBox=await page.locator('.world').boundingBox();
+  assert.ok(panelBox.y+panelBox.height<worldBox.y+worldBox.height*.67,'intro panel blocks landing runway');
+  assert.equal(await page.locator('header h1').count(),0,'giant headline should not take playfield space');
+  const cdp=await page.context().newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+20,y:box.y+20}]});assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),true);assert.match(await page.locator('#bridge-demo').innerText(),/透ける/);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),false);
-  await page.locator('#action').tap();await page.keyboard.down('Space');await page.clock.runFor(80);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal(await page.evaluate(()=>window.__MOON_LAB__.mode),'paused');assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),false);await page.keyboard.up('Space');await page.locator('#action').tap();await page.clock.runFor(4000);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.status),'dead');await page.locator('#action').tap();assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.jumps),0);
+  await page.locator('#action').tap();await page.keyboard.down('Space');await page.clock.runFor(80);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal(await page.evaluate(()=>window.__MOON_LAB__.mode),'paused');assert.equal(await page.evaluate(()=>window.__MOON_LAB__.fast),false);await page.keyboard.up('Space');await page.locator('#action').tap();await page.clock.runFor(4000);assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.status),'dead');
+  const failureBox=await page.locator('#panel').boundingBox();
+  assert.ok(failureBox.y+failureBox.height<worldBox.y+worldBox.height*.67,'failure card obscures the missed landing');
+  assert.ok((await page.locator('#title').innerText()).length<18,'feedback too verbose');
+  if(width===360)await page.screenshot({path:'docs/moon-lab-screenshots/ux-failure-360.png'});
+  await page.locator('#action').tap();assert.equal(await page.evaluate(()=>window.__MOON_LAB__.state.jumps),0);
   await page.close();console.log(`PASS ${width}x${height}: intro/demo, touch cancel, pause, death/retry`);
  }
  for(const index of [0,1]){
