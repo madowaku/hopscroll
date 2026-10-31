@@ -13,6 +13,8 @@ const failureWords={
  overshoot:['飛び越した！','少し早く離そう。'],
  edge:['端に落ちた！','輪を足場の中へ。']
 };
+// Avoid repeatedly announcing identical live-region text at animation framerate.
+function setHint(value){if($('hint').textContent!==value)$('hint').textContent=value;}
 function clearInput(){input.reset();last=null;}
 function show(title,description,action){$('title').textContent=title;$('description').textContent=description;$('action').textContent=action;$('panel').hidden=false;$('demo').hidden=mode!=='ready'||level.id!=='003';$('restart').hidden=mode==='ready';}
 function select(index){audio.suspend();clearInput();level=moonLevels[index];state=createMoonState(level);mode='ready';$('eyebrow').textContent=`STAGE ${level.id}`;
@@ -41,8 +43,8 @@ function render(){
  const next=predictMoon(state,level,input.fast),offset=state.x-65/zoom,sx=x=>(x-offset)*zoom,y=310;
  $('resume').hidden=mode!=='checkpoint-ready';
  $('mute').textContent=audio.muted?'♪̸':'♪';$('mute').setAttribute('aria-pressed',String(audio.muted));$('mute').setAttribute('aria-label',audio.muted?'効果音をオン':'効果音をミュート');
- $('hint').textContent=mode==='playing'?(level.id==='003'?'薄藤の橋は、離して着地。NEXTの輪が赤なら危険。':state.x>1250&&state.x<1720?'近い足場か、団子の島か。どちらからでも、その先へ。':'NEXTは今の速度を保った着地点。団子は着地で獲得。'):'NEXTの輪は、今の速度のまま跳んだ着地点。';
- if(mode==='checkpoint-ready')$('hint').textContent='NEXTを確認しよう。最初は離したままで安全。';
+ setHint(mode==='playing'?(level.id==='003'?'薄藤の橋は、離して着地。NEXTの輪が赤なら危険。':state.x>1250&&state.x<1720?'近い足場か、団子の島か。どちらからでも、その先へ。':'NEXTは今の速度を保った着地点。団子は着地で獲得。'):'NEXTの輪は、今の速度のまま跳んだ着地点。');
+ if(mode==='checkpoint-ready')setHint('NEXTを確認。最初はSLOWで安全。');
  ctx.clearRect(0,0,360,420);
  // Quiet, code-native greybox scenery; no final Michiru art is implied.
  ctx.fillStyle='#667596';for(let i=0;i<22;i++){const x=(i*97+17-(state.x*.08)%360+360)%360;ctx.fillRect(x,30+(i*47)%190,1.5,1.5);}
