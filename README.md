@@ -1,28 +1,39 @@
-# HOPSCROLL — Moon Journey v0.1
+# HOPSCROLL — Moon Journey v0.5
 
-団子を持った月兎娘ミチルが、地球見祭へ向かう5ステージの旅。押している間は世界がFAST、離すとSLOW。自動ジャンプは0.78秒のまま、距離と着地する速さを選びます。
+月に住む兎人の女の子ミチルが、月見団子を持って地球見祭へ向かうステージ型ジャンプゲーム。**押している間はFAST（270px/s）、離すとSLOW（105px/s）**。0.78秒ごとの自動ジャンプを、道の流れる速さでコントロールします。
 
-- 本編入口：`moon-journey.html`（001 月の庭 → 002 夜風の間 → 003 月光橋 → 004 ふたつの月道 → 005 地球見の夜）。
-- 月光橋はSLOW着地だけ安全。団子は任意・着地で獲得。月印からの再挑戦、最初から、ノー復帰のFULL MOONに対応。
-- ステージ選択は選択中の面だけ名前を開き、プレイ画面とNEXTを優先。Space / HOLD / プレイ画面の長押しで操作。
+## itch.io向け Moon Journey（現在の提出候補）
 
-## Build and verify
+- **6ステージ**：001 月の庭 → 002 夜風の間 → 003 しずかな月光橋 → 004 ふたつの月道 → 006 流星の海 → 005 地球見の夜。表示順とステージIDは一致しません。
+- **開始画面**：`moon-journey.html`。タイトルからSTART／ステージ選択、日英切替、音のミュートができます。
+- **操作**：ゲーム画面を押し続ける、丸いHOLDボタンを押し続ける、またはSpaceキーを押すとFAST。離すとSLOW。メニュー操作ではFASTになりません。
+- **月光橋**（薄藤）：SLOW着地なら安全。FASTに切り替えてから0.12秒未満の着地も安全。
+- **流星橋**（金）：FAST着地なら安全。SLOWに切り替えてから0.12秒未満の着地も安全。
+- **団子**：一部の島へ着地すると任意取得。**月印**は中間チェックポイント。復帰せずにクリアするとFULL MOON。
+- **演出**：ミチルの透過スプライト、夜空の視差・流星の尾・光る月道、オリジナルの着地音。言語設定と練習完了はブラウザ内に保存されます。
 
-```text
+## itch用ZIPの作成と検証
+
+```sh
 node --test tests/core.test.mjs tests/star-run.test.mjs tests/moon.test.mjs tests/moon-journey.test.mjs
 python scripts/build_moon_journey.py
-python -m zipfile -e itch-dist/HOPSCROLL-Moon-Journey-v0.1.zip itch-dist/moon-journey-verified
+python -m zipfile -e itch-dist/HOPSCROLL-Moon-Journey-v0.5.zip itch-dist/moon-journey-verified
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Source: `http://127.0.0.1:8000/moon-journey.html`. Extracted distribution: `http://127.0.0.1:8000/itch-dist/moon-journey-verified/index.html`.
-Set `JOURNEY_URL` to the latter URL and run `node tests/moon-journey-browser.mjs` with the repository's `playwright-core` dependency and Chrome available. The server is an optional local-only command; no LAN server is required.
+別ターミナルから、`JOURNEY_URL=http://127.0.0.1:8000/itch-dist/moon-journey-verified/index.html node tests/moon-journey-browser.mjs` を実行。Windowsでは必要に応じて環境変数`JOURNEY_URL`の設定方法を使い分けてください。テストにはPlaywright CoreとローカルChromeが必要です。
 
-The ZIP has `index.html` at its root and includes modules, sprite B, credits and provenance. It deliberately excludes third-party BGM. It is prepared for review, not published. Physical Android, itch embedding, human listening and fun/retry acceptance remain open; see [QA](docs/MOON_JOURNEY_QA.md).
+**提出するのは `HOPSCROLL-Moon-Journey-v0.5.zip`** です。ZIP直下に`index.html`が入り、必要なスプライト・背景・モジュール・`CREDITS.txt`・`PROVENANCE.md`を同梱します。ソースの`moon-journey.html`だけをアップロードしても画像やスクリプトは揃いません。
 
-## Reversible experiments and history
+第三者BGM「Love it Rabbit」は**標準ZIPには含めません**。利用条件と再配布条件を確認して明示的に選択する場合に限り、ローカルの`assets/bgm/love-it-rabbit.mp3`を用意し`INCLUDE_BGM=1`でビルドできます。権利確認が済んでいない場合は効果音のみで提出してください。BGMなしでもゲームは動作します。
 
-- `index.html`: original six-stage campaign; `python scripts/build.py` still creates its single-file `itch-dist/index.html` independently.
-- `moon-lab.html`: two-stage bridge/fork regression target using the same runtime.
-- `star-run.html`: independent **finite 24-hop** score experiment.
-- Current integration authority: [Issue #13](https://github.com/madowaku/hopscroll/issues/13), [stage design](docs/MOON_STAGE_PACK_v0.1.md), [approved character](docs/MOON_RABBIT_CHARACTER_v0.1.md), [QA and admitted coordinate changes](docs/MOON_JOURNEY_QA.md). Older division-of-work and merge instructions in HANDOFF/CODEX_TASK/CLAUDE_CODE_TASK/INTEGRATION describe earlier campaigns.
+生成AIによる画像制作・加工の経緯はZIP内のPROVENANCEと制作記録を参照し、itch.ioのAI利用開示欄を確認してください。**音声自動テストはブラウザ信号の上限・出力を検証するもので、人の耳での聴感・Android端末音量を保証しません**。人間の試遊、itch埋め込み、権利開示は公開前の確認事項です。
+
+## 旧版と実験版
+
+- `index.html` / `scripts/build.py`：旧6面キャンペーンと独立した単一HTMLビルド（保管用）。
+- `moon-lab.html`：003/004の灰箱・物理・音声回帰テスト。
+- `star-run.html`：X用の**有限24ジャンプ試作**。まだ無限エンドレスではありません。
+- 開発の根拠： [Issue #13](https://github.com/madowaku/hopscroll/issues/13)、[Stage Pack](docs/MOON_STAGE_PACK_v0.1.md)、[月兎娘設定](docs/MOON_RABBIT_CHARACTER_v0.1.md)、[既存統合QA](docs/MOON_JOURNEY_QA.md) と [v0.5引継ぎ](docs/HANDOFF_CODEX_MOON_JOURNEY_v0.5.md)。
+
+**このREADMEはv0.5候補の説明です。mainへのマージや公開が済んだという意味ではありません。**
