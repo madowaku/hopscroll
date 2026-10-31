@@ -56,7 +56,7 @@ assert.equal(near.state.status,'clear');assert.equal(near.state.bonus,false);ass
  for(const [late,alive] of [[.1,true],[.15,false]]){const s=createMoonState(sea);for(const c of 'SS')advanceMoon(s,sea,PERIOD,false);advanceMoon(s,sea,PERIOD-late,true);
   const x=s.x+105*late;advanceMoon(s,sea,late,false);assert.equal(s.status!=='dead',alive,`006 meteor release ${late}s early at ${x.toFixed(1)}`);if(!alive)assert.equal(s.failure.reason,'meteor-bridge-slow');}
 }
-console.log('PASS Journey: five references, alternate solvers, frame rates, intro freedom, safe checkpoints, optional festival fork');
+console.log('PASS Journey: six references, alternate solvers, frame rates, intro freedom, safe checkpoints, optional festival fork');
 
 // Shift every local group of up to three transitions ±30ms at four frame rates.
 // M→F bridge re-presses use the same 60ms guard as the existing Moon tests.
