@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import {levels,PERIOD,SLOW_SPEED,FAST_SPEED,createState,advance,predictLanding,isSafe,inGoal} from '../src/core.mjs';
 assert.equal(levels.length,6);
 assert.equal(+(FAST_SPEED/SLOW_SPEED).toFixed(1),2.6);
-assert.ok(levels.every(l=>l.platforms.length>=2 && isSafe(l,l.start) && isSafe(l,(l.goal[0]+l.goal[1])/2)));
+assert.ok(levels.every(l=>(l.practice || l.platforms.length>=2) && isSafe(l,l.start) && isSafe(l,(l.goal[0]+l.goal[1])/2)));
 for(const level of levels){
+  if(level.practice)continue; // Practice completion also requires HOLD then RELEASE; separately tested below.
   // Reachability solver: any fraction of FAST input is allowed during each hop.
   // Integer targets are verified by splitting each simulated hop into a slow and fast interval.
   let reached=new Map([[Math.round(level.start),[]]]),result=null;
@@ -40,15 +41,15 @@ advance(s,l,.32,false);assert.equal(s.jumps,0);assert.ok(s.x>l.start);
 console.log('PASS: 6 stage solution simulations + fixed-tempo movement tests');
 // Input and landing semantics regression tests.
 {
-  const a=createState(levels[0]);
-  // All slow: safely lands twice, then drops into the first hole.
-  for(let n=0;n<3;n++)advance(a,levels[0],PERIOD,false);
+  const a=createState(levels[1]);
+  // Gap stage: all SLOW lands twice, then falls into the first hole.
+  for(let n=0;n<3;n++)advance(a,levels[1],PERIOD,false);
   assert.equal(a.status,'dead');assert.equal(a.jumps,3);
-  const b=createState(levels[0]);
-  advance(b,levels[0],PERIOD,true);
+  const b=createState(levels[1]);
+  advance(b,levels[1],PERIOD,true);
   assert.equal(b.status,'dead','fast-from-start should overshoot the first safe ledge');
-  const c=createState(levels[0]);
-  advance(c,levels[0],PERIOD/2,false);
+  const c=createState(levels[1]);
+  advance(c,levels[1],PERIOD/2,false);
   const preview=predictLanding(c,true);
   assert.ok(preview>predictLanding(c,false),'holding fast must move the predicted landing point');
 }
@@ -66,11 +67,38 @@ console.log('PASS: 6 stage solution simulations + fixed-tempo movement tests');
 }
 // Star pickups must be possible mid-jump without exact landing on star X.
 {
- const l=levels[0],state=createState(l);
+ const l=levels[1],state=createState(l);
  advance(state,l,PERIOD,false);advance(state,l,PERIOD,false);
  advance(state,l,PERIOD,true);
  const ev=advance(state,l,PERIOD,true);
  assert.ok(ev.includes('star') && state.starCount>=1,'Star should collect while passing through');
+}
+
+// No hole at the start: pressing FAST before learning can never kill the player.
+{
+ const level=levels[0];
+ assert.equal(level.practice,true);
+ assert.equal(level.platforms.length,1);
+ const slow=createState(level);
+ for(let hop=0;hop<14;hop++)advance(slow,level,PERIOD,false);
+ assert.equal(slow.status,'playing','All SLOW in sandbox must be safe (not auto-clear)');
+ assert.equal(slow.triedFast,false);
+ const fast=createState(level);
+ for(let hop=0;hop<12;hop++)advance(fast,level,PERIOD,true);
+ assert.equal(fast.status,'playing','All FAST must not drop into a hole or auto-clear');
+ assert.equal(fast.triedFast,true);
+ assert.equal(fast.triedRelease,false);
+ advance(fast,level,PERIOD,false);
+ assert.equal(fast.status,'clear','After HOLD then RELEASE, land past finish line to clear');
+ const alternating=createState(level);
+ advance(alternating,level,PERIOD/2,true);
+ advance(alternating,level,PERIOD/2,false);
+ while(alternating.status==='playing') advance(alternating,level,PERIOD,false);
+ assert.equal(alternating.status,'clear');
+ assert.equal(alternating.failure,null);
+ const fresh=createState(level);
+ assert.equal(fresh.triedFast,false);
+ assert.equal(fresh.triedRelease,false);
 }
 
 // Reproducible routes, independently jittered input transitions and frame sizes.

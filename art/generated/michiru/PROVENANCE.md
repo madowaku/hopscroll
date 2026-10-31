@@ -1,0 +1,35 @@
+# Michiru generated art provenance
+
+Date: 2026-10-31. Tool: OpenAI built-in `image_gen__imagegen`; model identifier not disclosed. AI-generated reference art for itch.io disclosure. No external artwork used.
+
+## Prompts (full text)
+
+### Sheet first attempt (not shipped)
+
+Use case: stylized-concept. HOPSCROLL character reference sheet, wide landscape. Plain uniform navy #0d1630 background. Exactly FIVE full-body poses evenly spaced in ONE row: front, right-facing side, SLOW floating with broad sleeves and drooping left ear tip holding dango tenderly, FAST rightward hop with ears sleeves sash streaming straight backward protecting dango, squashed landing. No text or labels. Same Michiru in every pose: human rabbit girl, two legs two arms, 2.5–3 heads tall excluding rabbit ears, NOT an animal rabbit. Anatomical RIGHT ear long upright, anatomical LEFT ear only its tip bent; both stream back in FAST. Silver-white short bob hair, large dark brown eyes, ivory/pale pink skin, tiny calm closed mouth. Short fluffy moon-white/pale lavender cloak with wide sleeves and crescent-shaped scalloped hem, navy lining, thin small gold waist sash. One hand holds a skewer of EXACTLY three round moon-viewing dumplings: two white and one pale pink. Palette lavender #BFB7E8 white #F4F0E7 navy shadow #243052 tiny gold #FFD879. Flat vector-like clean shapes, very simple silhouette readable at 48px, faint pale blue-white edge light. No scenery, no extra props, no letters, no watermark.
+
+### Sheet final attempt
+
+Use case: stylized-concept. HOPSCROLL character reference sheet, wide landscape. Plain uniform navy #0d1630 background. Exactly FIVE full-body poses evenly spaced in ONE row: front, right-facing side, SLOW floating with broad sleeves and drooping left ear tip holding dango tenderly, FAST rightward hop with ears sleeves sash streaming straight backward protecting dango, squashed landing. No text or labels. Same Michiru in every pose: human rabbit girl, two legs two arms, 2.5–3 heads tall excluding rabbit ears, NOT an animal rabbit. Anatomical RIGHT ear long upright, anatomical LEFT ear only its tip bent; both stream back in FAST. Silver-white short bob hair, large dark brown eyes, ivory/pale pink skin, tiny calm closed mouth. Short fluffy moon-white/pale lavender cloak with wide sleeves and crescent-shaped scalloped hem, navy lining, thin small gold waist sash. One hand holds a skewer of EXACTLY three round moon-viewing dumplings: two white and one pale pink. Palette lavender #BFB7E8 white #F4F0E7 navy shadow #243052 tiny gold #FFD879. Flat vector-like clean shapes, very simple silhouette readable at 48px, faint pale blue-white edge light. No scenery, no extra props, no letters, no watermark.
+Correction requirements: EXTREMELY CHIBI proportions, body from chin to soles only 1.7 head-heights, matching a tiny game sprite. Simple broad flat fills, no fabric ornament, no tail, no thin decorative lines. Background must be perfectly uniform RGB(13,22,48), no gradient, texture, glow haze or vignette. All five silhouettes comfortably inside frame. Dumplings remain white-white-pink.
+
+### Standalone
+
+Use case: stylized-concept. Standalone Michiru game sprite, square 512x512, FULL BODY right-facing side view mid jump, generous transparent margins. GENUINELY TRANSPARENT background actual alpha, no checkerboard, scenery, ground or shadow plane. Human rabbit girl with TWO human legs and two arms, VERY CHIBI 2.5 heads tall excluding ears, large round head and short limbs. Anatomical RIGHT rabbit ear long and straight upright, anatomical LEFT ear has ONLY tip folded down. Short silver-white bob hair, large dark brown eyes, ivory skin pink cheek tiny closed mouth. Short fluffy moon-white/pale lavender cloak with wide billowing sleeves and crescent curved hem, navy lining, fine gold sash. One hand cradles upright skewer with EXACTLY three separate round dumplings two white one pale pink in front of chest. Other hand protects them. Palette #BFB7E8 #F4F0E7 shadow #243052 tiny gold #FFD879. Clean FLAT vector style with minimal broad shapes, no detailed ornament or hair strands; readable at 48px. Pale blue-white rim light confined to contour. No animal body, no tail, no text logos watermark.
+
+## Processing and verification
+
+- Sheet: final generated PNG copied unchanged; 1920 × 819 RGB. No background replacement. Visually plain navy, but sampled pixels do not exactly match #0d1630; subtle variation remains. Five poses present; right/left ear continuity in profile and FAST's bent ear are imperfect. This is reference art, not an approved model sheet.
+- Standalone: native transparent output resized to 512 × 512 with Pillow LANCZOS, preserving alpha; no background removal or fabricated transparency. RGBA, alpha range 0–255; 186831 fully transparent pixels, 74030 partial, 1283 fully opaque. Corner (0,0,0,0). Translucency includes much of the character; not adopted as title art.
+- Both generated images visually inspected. Standalone ornament and proportions differ from the deliberately simplified Canvas version. Title and all result cards use the same hand-authored Canvas silhouette instead. Existing star-rabbit source art remains historical, not displayed by drawIcon.
+- Canvas is hand-authored paths, independent of these bitmaps. Screenshots and 48px check are under docs/screenshots/michiru/; synthetic browser states are not human playtesting.
+
+## Sprite atlas (2026-10-31, Claude Code)
+
+- Output: `assets/img/michiru-sprites.png` (RGBA atlas, 6 frames: front, happy, profile, slow, fast, land). Produced deterministically by `scripts/make_michiru_sprites.py` from `michiru-sheet.png`; no new image generation.
+- Processing: background keyed only where it is connected to the sheet border (flood fill on distance to the sampled navy, soft edge 10–46), navy un-mixed from anti-aliased edges; enclosed navy sleeve linings stay opaque. All frames scaled by the same factor (0.36, Pillow LANCZOS) so the character size never changes between poses.
+- `happy` is the `front` pose with the open eyes painted over in skin tone and closed smiling eyes, a small mouth and blush drawn on (Pillow, supersampled). It is a hand edit of generated art, not a separate generation.
+- The game draws these frames on the Canvas; the hand-authored `michiruShape` remains as the fallback when the atlas fails to load. `scripts/build.py` inlines the atlas into the itch build.
+
+## Current integration (Issue #13)
+The earlier Canvas-only card description records the initial experiment. The approved PR #12 B atlas now renders in both the original campaign and Moon Journey. Journey uses `src/michiru.mjs` with the original Canvas paths as image-load failure fallback; no new image generation or image editing was performed for this integration. Journey packaging copies this atlas and provenance into the offline ZIP and excludes all third-party music.

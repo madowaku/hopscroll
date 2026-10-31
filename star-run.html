@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>STAR RUN · HOPSCROLL</title><link rel="stylesheet" href="star-run.css"></head>
+<body><main><header><span>HOPSCROLL / PROTOTYPE</span><h1>STAR RUN</h1><p>24 hops. Find your rhythm.</p></header>
+<section class="scores" aria-label="Score"><div>GATES<strong id="gates">0</strong></div><div>STARS<strong id="stars">0</strong></div><div>BEST<strong id="best">0 / 0★</strong></div></section>
+<canvas id="play" width="360" height="360" aria-label="Jumping course. Solid mint platforms are safe; striped gaps are hazards. NEXT predicts your landing at current speed."></canvas>
+<p id="hint">HOLD = FAST · RELEASE = SLOW<br>Land on mint. NEXT shows where you will land.</p>
+<section id="result" aria-live="polite"><strong id="message">READY?</strong><span id="summary">Cross gaps to score. Stars are optional.</span><button id="retry">START RUN</button></section>
+<button id="hold">HOLD TO GO FAST</button><footer>Space or hold the play area · Release to brake</footer></main><script type="module" src="src/star-run.mjs"></script></body></html>
