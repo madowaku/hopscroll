@@ -367,8 +367,8 @@ function drawForecast(level,camera){
 }
 // Michiru: hand-drawn right profile, foot origin and caller transforms unchanged.
 // Upright bounds are approximately 120 units / 60 CSS px including ears.
-function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0}={}){
-  const f=Math.max(0,Math.min(1,flow));
+function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0,crouch=0}={}){
+  const f=Math.max(0,Math.min(1,flow)),c=Math.max(0,Math.min(1,crouch)),u=9*(1-f)*(1-c);
   const white='#f5f1fa',hair='#e5e0f2',shade='#aba1d5',navy='#243052',skin='#ffdfce',pink='#f3acbc';
   g.save();g.lineJoin='round';g.lineCap='round';
   const path=(d,c,edge=true)=>{const p=new Path2D(d);g.fillStyle=c;
@@ -376,15 +376,18 @@ function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0}={}){
     g.shadowBlur=0;g.fill(p);};
   const line=(d,c=shade,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.stroke(new Path2D(d));};
   const oval=(x,y,rx,ry,c)=>{g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=c;g.fill();};
-  // Bare knees and separate boots: the rear leg kicks back as speed rises.
+  // Bare knees and separate boots: the rear leg kicks back as speed rises, the front knee tucks up while SLOW,
+  // and both fold short (wider, lower) in the landing crouch.
+  g.save();g.scale(1+.18*c,1-.42*c);
   path(`M -10 -31 L 0 -29 L ${-5-24*f} ${-9-10*f} L ${-14-24*f} ${-10-10*f} Z`,skin);
   path(`M ${-14-24*f} ${-13-10*f} L ${-5-24*f} ${-11-10*f} L ${-2-24*f} ${-3-10*f} Q ${-8-24*f} ${1-10*f} ${-17-24*f} ${-3-10*f} Z`,white);
-  path(`M 3 -30 L 13 -31 L ${13+9*f} -10 L ${5+9*f} -8 Z`,skin);
-  path(`M ${4+9*f} -12 L ${14+9*f} -13 L ${16+9*f} -6 Q ${24+9*f} -4 ${21+9*f} 0 L ${4+9*f} 0 Z`,white);
-  line(`M ${4+9*f} -11 L ${14+9*f} -12`,shade,3);
+  path(`M 3 -30 L 13 -31 L ${13+9*f-u*.6} ${-10-u} L ${5+9*f-u*.6} ${-8-u} Z`,skin);
+  path(`M ${4+9*f-u*.6} ${-12-u} L ${14+9*f-u*.6} ${-13-u} L ${16+9*f-u*.6} ${-6-u} Q ${24+9*f-u*.6} ${-4-u} ${21+9*f-u*.6} ${-u} L ${4+9*f-u*.6} ${-u} Z`,white);
+  line(`M ${4+9*f-u*.6} ${-11-u} L ${14+9*f-u*.6} ${-12-u}`,shade,3);
   line(`M ${-14-24*f} ${-12-10*f} L ${-5-24*f} ${-10-10*f}`,shade,3);
+  g.restore();
   // Lean the torso forward about the hips, independently of the existing whole-body lean.
-  g.translate(0,-30);g.rotate(.24*f);g.translate(0,30);
+  g.translate(0,12.6*c-30);g.rotate(.24*f);g.translate(0,30);
   path(`M -8 -64 Q -20 -52 ${-35-17*f} ${-25-28*f} Q -20 -15 15 -25 L 15 -58 Z`,navy);
   path(`M -8 -63 Q -24 -54 ${-37-18*f} ${-30-27*f} Q -29 -20 -14 -26 Q -2 -15 19 -29 L 12 -59 Z`,white);
   path('M -7 -58 L 12 -58 L 15 -27 Q 4 -20 -4 -30 Z',shade,false);
@@ -398,8 +401,8 @@ function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0}={}){
   path('M -9 -66 L 12 -66 L 17 -56 L 1 -51 L -13 -57 Z',navy);
   path('M -8 -64 L 2 -55 L 0 -48 L -16 -58 Z',hair);
   path('M 11 -64 L 2 -55 L 9 -50 L 17 -58 Z',white);
-  // Bob silhouette is angular at the tips, never a round white animal head.
-  path(`M -22 -65 Q -29 -81 -19 -91 Q -5 -103 14 -94 Q 26 -90 26 -77 L 20 -64 L 8 -59 L -13 -60 L -22 -64 L ${-30-15*f} -65 L -24 -71 L ${-32-18*f} -72 Z`,hair);
+  // Bob silhouette with soft rounded tips, never a round white animal head.
+  path(`M -22 -65 Q -29 -81 -19 -91 Q -5 -103 14 -94 Q 26 -90 26 -77 Q 24 -66 20 -64 L 8 -59 L -13 -60 Q -18 -60 -22 -63 Q ${-29-13*f} -63 ${-27-13*f} -67 Q ${-26-15*f} -70 ${-29-16*f} -73 Q -26 -77 -22 -75 Z`,hair);
   // Far left ear: rising base, pronounced corner, then a broad downward tip.
   g.save();g.translate(7,-94);g.rotate(earA*.22-.65*f);
   path('M -4 3 Q 3 -15 18 -15 Q 24 -14 25 -8 L 30 4 Q 30 9 23 6 L 15 -4 L 15 -9 Q 6 -7 3 4 Z',shade);
@@ -414,7 +417,7 @@ function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0}={}){
   path('M -7 -87 Q 11 -94 22 -82 L 23 -72 Q 24 -62 14 -59 Q 3 -57 -6 -65 Z',skin,false);
   oval(-6,-70,4,5,skin);
   // Crown, long bangs, and the cheek-framing side lock.
-  path('M -24 -76 Q -26 -95 -8 -98 Q 16 -102 25 -83 L 25 -76 L 20 -79 L 16 -88 Q 17 -80 13 -75 Q 6 -79 3 -89 Q 2 -78 -5 -74 L -7 -63 L -16 -60 L -22 -65 L -18 -69 L -26 -67 Z',hair);
+  path('M -24 -76 Q -26 -95 -8 -98 Q 16 -102 25 -83 L 25 -76 L 20 -79 L 16 -88 Q 17 -80 13 -75 Q 6 -79 3 -89 Q 2 -78 -5 -74 L -7 -63 Q -12 -60 -16 -61 Q -21 -63 -20 -67 Q -24 -67 -24 -71 Z',hair);
   path('M -18 -87 Q -20 -73 -15 -65 L -10 -66 L -10 -73 Q -13 -77 -10 -91 Z',white,false);
   line('M -6 -94 Q -12 -83 -8 -73 M 4 -94 Q 5 -82 13 -76 M -20 -79 L -20 -70');
   // One large profile eye, eyelash and small blush; closed smile / X on cards.
@@ -436,6 +439,24 @@ function michiruShape(g,{earA=-.25,mood='play',glow=10,flow=0}={}){
   oval(29,-60,4.8,4.8,pink);oval(31,-69,4.8,4.8,'#fff0e6');oval(33,-78,4.8,4.8,'#fff0e6');
   path('M 23 -53 Q 28 -57 30 -52 L 28 -46 Q 24 -44 22 -48 Z',skin,false);
   g.restore();g.restore();
+  g.restore();
+}
+// Sprite Michiru (default): poses cut from the reference sheet by scripts/make_michiru_sprites.py.
+// Same foot-origin, 120-unit frame as michiruShape, which stays as the fallback if the atlas fails to load.
+// Frame: [sx, sy, w, h, anchorX] in atlas px; the anchor sits under the body, the bottom edge is the floor.
+const MICHIRU_FRAMES={front:[3,3,107,218,54],happy:[116,3,107,218,54],profile:[229,3,95,218,46],slow:[330,3,116,202,60],fast:[452,3,142,170,84],land:[600,3,125,156,64]};
+const MICHIRU_UNIT=.6; // 218 atlas px standing = 131 units = 65 CSS px; the SLOW hop pose is ~61 px.
+const michiruAtlas=new Image();let michiruSprites='loading',iconMood='play';
+michiruAtlas.onload=()=>{michiruSprites='ready';drawIcon(iconMood);};
+michiruAtlas.onerror=()=>{michiruSprites='broken';};
+michiruAtlas.src='./assets/img/michiru-sprites.png';
+const useSprites=()=>michiruSprites==='ready'&&!window.__HOPSCROLL_DEBUG__?.forceCanvas;
+function michiruSprite(g,pose,alpha=1){
+  const f=MICHIRU_FRAMES[pose];if(!f||alpha<=.01)return;
+  g.save();g.globalAlpha*=alpha;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+  // A thin moonlit rim keeps the white coat apart from the pale platforms.
+  g.shadowColor='#cfe6ff';g.shadowBlur=4;
+  g.drawImage(michiruAtlas,f[0],f[1],f[2],f[3],-f[4]*MICHIRU_UNIT,-f[3]*MICHIRU_UNIT,f[2]*MICHIRU_UNIT,f[3]*MICHIRU_UNIT);
   g.restore();
 }
 function drawTrail(camera){
@@ -463,8 +484,23 @@ function drawRabbit(dt){
   lean+=((reduceMotion?0:.2*flow)-lean)*Math.min(1,dt*12);
   const foot=FLOOR-4-hop+drop;
   if(!drop){ctx.globalAlpha=Math.max(.12,.45-hop/240);ctx.fillStyle='#a9dcff';ctx.beginPath();ctx.ellipse(HERO_X,FLOOR,Math.max(7,15-hop*.07),3,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
-  ctx.save();ctx.translate(HERO_X,foot);ctx.rotate(lean+(drop?Math.min(1.2,drop/120):0));ctx.scale(RABBIT_SCALE*sx,RABBIT_SCALE*sy);
-  michiruShape(ctx,{earA:ear,flow,mood:ending?.kind==='clear'?'happy':ending?.kind==='fail'?'dizzy':'play'});
+  // Deep "puni" crouch while the feet are near the floor (just before and after each touchdown).
+  const crouch=live&&!reduceMotion?Math.max(0,1-hop/36):0;
+  const mood=ending?.kind==='clear'?'happy':ending?.kind==='fail'?'dizzy':'play';
+  ctx.save();ctx.translate(HERO_X,foot);
+  if(useSprites()){
+    // The FAST pose already leans, so the body tilt is gentler; a little back-tilt while rising, nose-down while falling.
+    const tilt=reduceMotion?0:.35*lean-.06*vy;
+    ctx.rotate(tilt+(drop?Math.min(1.2,drop/120):0));ctx.scale(RABBIT_SCALE*sx,RABBIT_SCALE*sy);
+    if(mood==='happy')michiruSprite(ctx,'happy');
+    else if(mood==='dizzy')michiruSprite(ctx,'land');
+    else if(!live)michiruSprite(ctx,'profile');
+    // Hard pose cuts read crisper than cross-fades between different silhouettes (which ghost).
+    else michiruSprite(ctx,crouch>.4?'land':flow>.5?'fast':'slow');
+  }else{
+    ctx.rotate(lean+(drop?Math.min(1.2,drop/120):0));ctx.scale(RABBIT_SCALE*sx,RABBIT_SCALE*sy);
+    michiruShape(ctx,{earA:ear,flow,mood,crouch});
+  }
   ctx.restore();
 }
 // Rhythm wheel always counts down with the SAME period, independent of speed. Parked under the HUD, away from the rabbit.
@@ -489,13 +525,15 @@ function render(dt){
   if(ending?.kind==='fail'){ctx.fillStyle='#fb7c8c';ctx.globalAlpha=Math.min(.35,(time-ending.start)*1.2);ctx.fillRect(0,0,CW,CH);ctx.globalAlpha=1;}
 }
 // Card icon: the same Michiru, with the mood of the moment.
-// All cards share the Canvas silhouette; generated art is reference-only.
+// Cards use the same sprite poses as play (front / happy / crouch), or the Canvas drawing as fallback.
 function drawIcon(mood){
+  iconMood=mood;
   const c=$('hero-icon'),art=$('hero-art');if(!c)return;
   const useArt=false;art?.classList.toggle('hidden',!useArt);c.classList.toggle('hidden',useArt);
   if(useArt)return;
   const g=c.getContext('2d'),k=c.width/120;
   g.setTransform(k,0,0,k,0,0);g.clearRect(0,0,120,120);g.translate(62,111);g.scale(.84,.84);
+  if(useSprites()){g.translate(-4,0);michiruSprite(g,mood==='happy'?'happy':mood==='dizzy'?'land':'front');return;}
   michiruShape(g,{earA:mood==='happy'?-.05:mood==='dizzy'?-.6:-.25,mood,glow:14});
 }
 let last=performance.now();
@@ -519,5 +557,5 @@ function tick(now){
   render(dt);requestAnimationFrame(tick);
 }
 $('hero-art')?.addEventListener('error',e=>{e.currentTarget.dataset.broken='1';drawIcon('play');});
-window.__HOPSCROLL_DEBUG__={levels,createState,advance,isSafe,reset,get state(){return state},get playing(){return playing},get pressed(){return pressed},get bgm(){return bgm&&{paused:bgm.paused,time:bgm.currentTime,mode:bgmMode,broken:bgmBroken}}};
+window.__HOPSCROLL_DEBUG__={levels,createState,advance,isSafe,reset,get state(){return state},get playing(){return playing},get pressed(){return pressed},get sprites(){return michiruSprites},get bgm(){return bgm&&{paused:bgm.paused,time:bgm.currentTime,mode:bgmMode,broken:bgmBroken}}};
 updateMute();intro();updateHud();requestAnimationFrame(tick);

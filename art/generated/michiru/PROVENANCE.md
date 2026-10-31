@@ -23,3 +23,10 @@ Use case: stylized-concept. Standalone Michiru game sprite, square 512x512, FULL
 - Standalone: native transparent output resized to 512 × 512 with Pillow LANCZOS, preserving alpha; no background removal or fabricated transparency. RGBA, alpha range 0–255; 186831 fully transparent pixels, 74030 partial, 1283 fully opaque. Corner (0,0,0,0). Translucency includes much of the character; not adopted as title art.
 - Both generated images visually inspected. Standalone ornament and proportions differ from the deliberately simplified Canvas version. Title and all result cards use the same hand-authored Canvas silhouette instead. Existing star-rabbit source art remains historical, not displayed by drawIcon.
 - Canvas is hand-authored paths, independent of these bitmaps. Screenshots and 48px check are under docs/screenshots/michiru/; synthetic browser states are not human playtesting.
+
+## Sprite atlas (2026-10-31, Claude Code)
+
+- Output: `assets/img/michiru-sprites.png` (RGBA atlas, 6 frames: front, happy, profile, slow, fast, land). Produced deterministically by `scripts/make_michiru_sprites.py` from `michiru-sheet.png`; no new image generation.
+- Processing: background keyed only where it is connected to the sheet border (flood fill on distance to the sampled navy, soft edge 10–46), navy un-mixed from anti-aliased edges; enclosed navy sleeve linings stay opaque. All frames scaled by the same factor (0.36, Pillow LANCZOS) so the character size never changes between poses.
+- `happy` is the `front` pose with the open eyes painted over in skin tone and closed smiling eyes, a small mouth and blush drawn on (Pillow, supersampled). It is a hand edit of generated art, not a separate generation.
+- The game draws these frames on the Canvas; the hand-authored `michiruShape` remains as the fallback when the atlas fails to load. `scripts/build.py` inlines the atlas into the itch build.

@@ -5,6 +5,16 @@
 - `tests/michiru-captures.mjs`: ビルド済みHTMLの描画を使う再現用撮影スクリプト。コア状態と仮想時計を操作した自動確認であり、人間の試遊ではない。
 - `docs/screenshots/michiru/`: SLOW、FAST、着地、クリア、失敗、タイトル／結果カード、48px相当の比較。
 
+## v0.2 Visual Polish（2026-10-31, Claude Code）
+
+- **採用：B案（透過スプライト）**。A案（Canvas改良）とB案を、ビルド済みゲームの同一合成状態（SLOW・FAST・着地・クリア）で 360×640 と 320×700 の両方で撮影して比較した（`docs/screenshots/michiru/ab/board.png`、`tests/michiru-ab.mjs`）。B案は参考シートと同じ顔・髪・服を保ったまま、SLOW（膝を上げてふわり）／FAST（横一直線）／着地（深いしゃがみ）がシルエットだけで区別できる。A案は横顔の立ち姿ベースのため、SLOWと着地の差が小さいままだった。
+- ポーズ切替：着地前後で足が床に近い間（ホップ高さ36px未満の約0.12秒）は `land`、空中は `flow>.5` で `fast`、それ以外は `slow`。アルファのクロスフェードは異なるシルエットが重なって半透明の残像になったため、きっぱり切り替える方式にした。既存の伸び縮み・puni squash・失敗時の回転落下はそのまま乗る。FASTポーズ自体が前傾しているため、全体の傾きは0.35倍にした。
+- カード：タイトル＝正面、クリア＝目を閉じた笑顔（正面ポーズを加工）、失敗＝しゃがみ。
+- サイズ：立ち姿で約65px、SLOW約61px、FAST約51px、着地約47px（CSS px）。物理・当たり判定・ジャンプ周期・`HERO_X`・`FLOOR`・`RABBIT_SCALE`・着地点は変更なし。
+- フォールバック：アトラスの読み込みに失敗すると、`michiruShape`（A案）で描く。A案側も、SLOWの膝上げ・`crouch` 引数による脚の折りたたみと体の沈み込み・後ろ髪の尖りを丸める修正を入れた（ただし着地の沈み込みは控えめ）。読み込み失敗そのものはブラウザで再現しておらず、A案の描画を `forceCanvas` で強制して確認しただけ。
+- 検証：`node --test tests/core.test.mjs tests/star-run.test.mjs`、`python scripts/build.py`、`node tests/ui-smoke.mjs`（練習＋3画面サイズ＋入力＋3種の失敗／再挑戦）、`node tests/michiru-captures.mjs`、`node tests/michiru-ab.mjs` がすべて成功し、ページ例外もなかった。着地点の予測（NEXT）・足場・穴・ゴールが隠れていないことは比較ボードで目視確認した。人間の試遊・実機確認は未実施。
+- 設計書の更新：大きな瞳・はっきり折れる耳・三色団子・描画方式を `docs/MOON_RABBIT_CHARACTER_v0.1.md` に反映した。
+
 ## 確認結果
 
 2026-10-31 再描画（fe97dbeへのレビュー対応）:
