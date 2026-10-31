@@ -1,8 +1,10 @@
 """Build only admitted Moon Journey assets into an offline itch ZIP.
 
-The campaign BGM (assets/bgm/love-it-rabbit.mp3, git-ignored) is added only when present locally."""
+The third-party BGM is excluded from public-ready builds by default. Explicit
+INCLUDE_BGM=1 opt-in requires a prior license/redistribution review."""
 from pathlib import Path
 import shutil
+import os
 from zipfile import ZipFile, ZIP_DEFLATED
 
 base = Path(__file__).resolve().parent.parent
@@ -14,17 +16,17 @@ files = ['moon-lab.css', 'src/moon-sky.mjs', 'src/moon-i18n.mjs', 'src/core.mjs'
          'assets/img/title-earthwatch.jpg', 'assets/img/earth.webp', 'assets/img/moon-bridge.webp', 'assets/img/meteor-bridge.webp']
 BGM = 'assets/bgm/love-it-rabbit.mp3'
 html = (base / 'moon-journey.html').read_text(encoding='utf-8')
-if (base / BGM).exists():
+if os.environ.get('INCLUDE_BGM') == '1' and (base / BGM).exists():
     files.append(BGM)
     html = html.replace('<body data-journey="true">', f'<body data-journey="true" data-bgm="{BGM}">')
 else:
-    print(f'note: missing {BGM} (built without music)')
+    print(f'note: third-party BGM not included; explicit INCLUDE_BGM=1 and local file required')
 (out / 'index.html').write_text(html, encoding='utf-8')
 for name in files:
     target = out / name
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(base / name, target)
-credits = """HOPSCROLL — Moon Journey v0.1
+credits = """HOPSCROLL — Moon Journey v0.5
 Original game and character direction: madowaku.
 Michiru sprite B: approved reference extraction and processing by Claude Code.
 Image provenance: art/generated/michiru/PROVENANCE.md and art/generated/moon-journey/PROVENANCE.md in the source repository.
@@ -43,7 +45,7 @@ To run locally, serve this directory with a loopback-only HTTP server and open i
 (out / 'CREDITS.txt').write_text(credits, encoding='utf-8')
 (out / 'PROVENANCE.md').write_text('\n\n'.join((base / p).read_text(encoding='utf-8') for p in
     ['art/generated/michiru/PROVENANCE.md', 'art/generated/moon-journey/PROVENANCE.md']), encoding='utf-8')
-archive = base / 'itch-dist' / 'HOPSCROLL-Moon-Journey-v0.1.zip'
+archive = base / 'itch-dist' / 'HOPSCROLL-Moon-Journey-v0.5.zip'
 # Explicit allowlist excludes stale files.
 with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
     for name in ['index.html', *files, 'CREDITS.txt', 'PROVENANCE.md']:
