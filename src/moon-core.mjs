@@ -22,7 +22,7 @@ export function advanceMoon(state,level,dt,fast){
    const bonus=level.bonusIsland;
    if(bonus&&!state.bonus&&state.x>=bonus.a&&state.x<=bonus.b){state.bonus=true;current.push('bonus');}
    const cp=level.checkpoint;
-   if(!state.checkpoint&&state.x>=cp.a&&state.x<=cp.b){state.checkpoint={x:state.x,phase:0,jumps:state.jumps,bonus:state.bonus,starCount:state.starCount,collected:[...state.collected]};current.push('checkpoint');}
+   if(cp&&!state.checkpoint&&state.x>=cp.a&&state.x<=cp.b){state.checkpoint={x:state.x,phase:0,jumps:state.jumps,bonus:state.bonus,starCount:state.starCount,collected:[...state.collected]};current.push('checkpoint');}
    if(state.status==='clear')state.fullMoon=!state.usedCheckpoint;
    const bridge=level.surfaces.some(s=>s.kind==='bridge'&&state.x>=s.a+8-1e-8&&state.x<=s.b-8+1e-8);
    // One semantic cue per successful landing. Reward/goal replaces the base tap.
