@@ -3,7 +3,10 @@ import {PERIOD,createState,advance,isSafe,predictLanding} from './core.mjs';
 // changes support at landing only; it does not charge, slow or alter the jump.
 // Moon bridges hold released landings; meteor bridges are the reverse and hold only FAST ones.
 export function collisionView(level,fast,meteor=fast) {
- return {start:level.start,goal:level.goal,stars:[],platforms:level.surfaces.filter(s=>s.kind==='bridge'?!fast:s.kind==='meteor'?meteor:true).map(s=>[s.a,s.b])};
+ // Core.isSafe applies an 8px inset to every platform. For the gold meteor
+ // bridge, the full illuminated slab is the landing surface: undo that inset
+ // ONLY on active meteor bridges so the art and collision agree at both ends.
+ return {start:level.start,goal:level.goal,stars:[],platforms:level.surfaces.filter(s=>s.kind==='bridge'?!fast:s.kind==='meteor'?meteor:true).map(s=>s.kind==='meteor'?[s.a-8,s.b+8]:[s.a,s.b])};
 }
 // A bridge fades only after FAST has been held this long, so a press just before
 // touchdown (to launch the next hop fast) still lands on solid moonlight.
@@ -13,7 +16,9 @@ export function bridgeGhost(state,fast){return ghostAt(state,fast,0);}
 // The same grace the other way: a meteor bridge still holds a landing released just before touchdown.
 const meteorAt=(state,fast,until)=>fast||(state.slowHeld??BRIDGE_GRACE)+until<BRIDGE_GRACE-1e-9;
 export function meteorSolid(state,fast){return meteorAt(state,fast,0);}
-const on=(level,kind,x)=>level.surfaces.some(s=>s.kind===kind&&x>=s.a+8-1e-8&&x<=s.b-8+1e-8);
+// The same visible range is used for cue selection and wrong-speed failures.
+const on=(level,kind,x)=>level.surfaces.some(s=>s.kind===kind&&
+ x>=s.a+(kind==='meteor'?0:8)-1e-8&&x<=s.b-(kind==='meteor'?0:8)+1e-8);
 export function isLandingSafe(level,x,fast,meteor=fast){return isSafe(collisionView(level,fast,meteor),x);}
 export function predictMoon(state,level,fast){const x=predictLanding(state,fast),until=Math.max(0,PERIOD-state.phase);return {x,safe:isLandingSafe(level,x,ghostAt(state,fast,until),meteorAt(state,fast,until))};}
 export function createMoonState(level){return {...createState(collisionView(level,false)),bonus:false,checkpoint:null,usedCheckpoint:false,fullMoon:false,fastHeld:0,slowHeld:BRIDGE_GRACE};}
