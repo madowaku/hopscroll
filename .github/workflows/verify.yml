@@ -3,7 +3,7 @@ on:
   push:
     branches: [main, codex/safe-first-hop]
   pull_request:
-    branches: [main, claude/polish-mobile]
+    branches: [main, claude/polish-mobile, codex/moon-bridge-paths]
   workflow_dispatch:
 
 permissions:
