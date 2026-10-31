@@ -63,6 +63,20 @@ jobs:
       - name: Moon prototype browser smoke (local HTTP)
         run: |
           python -m http.server 8000 --bind 127.0.0.1 > /tmp/moon-http.log 2>&1 &
+          # The server starts asynchronously. Don't race Chrome against its first bind.
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:8000/moon-lab.html; then
+              ready=1
+              break
+            fi
+            sleep 0.25
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/moon-http.log
+            echo "::error::Moon Lab HTTP server did not become ready"
+            exit 1
+          fi
           node tests/moon-browser.mjs
           node tests/moon-audio-browser.mjs
           JOURNEY_URL=http://127.0.0.1:8000/itch-dist/moon-journey-verified/index.html node tests/moon-journey-browser.mjs
