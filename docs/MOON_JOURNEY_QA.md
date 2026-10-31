@@ -56,3 +56,14 @@ Captures: [entry320](moon-journey-screenshots/entry-320.png), [live Michiru360](
 Physical Android touch/app lifecycle and speaker output, itch iframe/hosting acceptance, human listening/fatigue, understanding the bridge and optional branch without coaching, and the pleasure of retrying all five stages. Automated inputs and screenshots establish technical behavior only. AI art/tool disclosure and final credits are included for creator review; no assertion of completed publication acceptance.
 
 No main merge, deployment, itch upload/publication or LAN server. Original PRs #9/#10/#11/#12 remain intact. Work uses the dedicated integration worktree and Draft PR targeting `claude/polish-mobile`.
+
+
+## v0.5レビュー補足（2026-10-31、旧5ステージ検証とは別の変更）
+
+以前の「Five-stage admitted campaign」節とZIP v0.1の検証数値は**当時のv0.1統合記録**であり、現在の6面v0.5を検証した証拠として流用しない。v0.5ではStage 006「流星の海」、0.12秒未満の月光橋/流星橋猶予、タイトル、日英UI、流星演出が追加された。基礎的な設計と検証コマンドは `docs/HANDOFF_CODEX_MOON_JOURNEY_v0.5.md` を参照。
+
+Codexレビューで次の2点が発見された：本体gain0.9に対してOffline音声テストgain0.32、英語選択中の月印復帰で日本語固定ヒント。この修正ブランチでは実際のマスターゲイン値をテストと共有し、英語checkpoint-readyの実ブラウザ確認を追加した。**この節は修正計画の記録であり、CI合格や実機聴感評価の宣言ではない。**
+
+- 音声の`docs/moon-audio-metrics.json`は修正前のgain0.32で取得した**古い計測値**。修正後の正しい音量検証データは最新CIの `moon-lab-browser-smoke` artifactに含まれるJSONを参照。音量dBや実機スピーカーでの安全性・快適性は人間が確認する。
+- ZIP出力名はv0.5へ統一。第三者BGMはデフォルトで非同梱、明示選択時のみ同梱される（配布ライセンス確認は別条件）。
+- 従来の Stage 006 の難易度は採用を急がずユーザー試遊を優先。「3つの月」は既存達成記録の表示案として検討、「お守り団子」は月印復帰との役割の差を先に設計する。
