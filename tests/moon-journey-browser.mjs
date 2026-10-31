@@ -92,11 +92,18 @@ try{
  // Every checkpoint and its actual restore path in the same built runtime.
  for(let i=1;i<levels.length;i++){
   console.log(`CHECKPOINT ${levels[i].id}`);
-  const level=levels[i],p=await open();await p.locator(`[data-stage="${i}"]`).tap();await p.locator('#action').tap();
+  const level=levels[i],p=await open();await p.locator(`[data-stage="${i}"]`).tap();
+  // Explicitly validate the checkpoint-ready screen in English as well as Japanese.
+  if(i===1){
+    if(await p.evaluate(()=>document.documentElement.lang)!=='en')await p.locator('#lang').tap();
+    assert.equal(await p.evaluate(()=>document.documentElement.lang),'en');
+  }
+  await p.locator('#action').tap();
   await play(p,level.route.slice(0,level.checkpoint.hop),'playing');
   const saved=await p.evaluate(()=>window.__MOON_LAB__.state.checkpoint);assert.ok(saved);
   await p.keyboard.up('Space');await p.clock.runFor(5000);assert.equal(await p.evaluate(()=>window.__MOON_LAB__.state.status),'dead');
   await p.locator('#action').tap();assert.equal(await p.evaluate(()=>window.__MOON_LAB__.mode),'checkpoint-ready');
+  if(i===1)assert.match(await p.locator('#hint').textContent(),/Check the landing ring/, 'Checkpoint recovery hint must follow English UI');
   const restored=await p.evaluate(()=>window.__MOON_LAB__.state);assert.equal(restored.x,saved.x);assert.equal(restored.phase,0);assert.equal(restored.bonus,saved.bonus);
   await p.clock.runFor(500);assert.equal(await p.evaluate(()=>window.__MOON_LAB__.state.phase),0);assert.equal(await p.evaluate(()=>window.__MOON_LAB__.prediction.safe),true);
   if(level.festival)await p.screenshot({path:'docs/moon-journey-screenshots/festival-recovery.png'});
@@ -119,5 +126,5 @@ try{
  assert.ok(metrics.frames>10);assert.ok(metrics.p95<100,'narrow viewport frame pacing exceeded sanity bound');assert.ok(metrics.peak>0,'built landing audio silent');assert.equal(metrics.played,2);
  await live.locator('#mute').click();await live.waitForFunction(()=>window.__MOON_LAB__.audio.state==='suspended');await live.locator('#pause').click();assert.equal(await live.evaluate(()=>window.__MOON_LAB__.fast),false);
  console.log('NARROW realtime',JSON.stringify(metrics));await live.close();
- assert.deepEqual(errors,[]);console.log('PASS Journey: five-stage flow and completion, three viewports, sprite poses/failure fallback, bridge demo, optional forks, four checkpoint recoveries, touchCancel/blur/retry');
+ assert.deepEqual(errors,[]);console.log('PASS Journey: English checkpoint hint, six-stage flow and completion, three viewports, sprite poses/failure fallback, bridge demo, optional forks, four checkpoint recoveries, touchCancel/blur/retry');
 }finally{await browser.close();}
